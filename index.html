@@ -212,7 +212,28 @@
             box-sizing: content-box; 
         }
         
-        /* (Estilos de slider omitidos por brevedad, son los mismos) */
+        /* Estilos específicos del slider (el punto o "thumb") */
+        #volumen-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--color-neon-accent);
+            cursor: pointer;
+            box-shadow: 0 0 5px var(--color-neon-accent);
+            border: 2px solid #fff;
+        }
+        
+        #volumen-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--color-neon-accent);
+            cursor: pointer;
+            box-shadow: 0 0 5px var(--color-neon-accent);
+            border: 2px solid #fff;
+        }
 
         /* --- ÁREA DE LETRAS (CC SIMULADO) --- */
         #lyrics-section {
@@ -287,8 +308,24 @@
             transition: transform 0.3s ease-out; 
         }
         
-        /* (Estilos de línea omitidos por brevedad, son los mismos) */
-
+        /* Línea de letra */
+        .lyric-line {
+            padding: 5px 0;
+            margin-bottom: 5px;
+            font-size: 16px;
+            color: var(--text-faded);
+            transition: color 0.3s, font-weight 0.3s, text-shadow 0.3s;
+            line-height: 1.4;
+        }
+        
+        /* Línea activa (CC) */
+        .lyric-line.active {
+            color: var(--color-neon-accent);
+            font-weight: 700;
+            text-shadow: 0 0 5px rgba(255, 0, 127, 0.9);
+            transform: scale(1.05);
+        }
+        
         /* Media Query para pantallas grandes (PC, TV) */
         @media (min-width: 800px) {
             #player-container {
@@ -340,7 +377,7 @@
             <canvas id="audio-visualizer-canvas" width="400" height="400"></canvas>
             
             <div id="caratula-container">
-                <img id="caratula-img" src="https://zeno.fm/_ipx/_/https://images.zeno.fm/LGol9lXeVJlVfO1bhAvAiJ7s3yl7nAUcaVsaDi1u-hw/rs:fill:288:288/g:ce:0:0/aHR0cHM6Ly9wcm94eS56ZW5vLmZtL2NvbnRlbnQvc3RhdGlvbnMvMTllOWM2NDktODNmZS00ZDA1LWEwNGYtY2Y5NThiNDEzMTlhL2ltYWdlLz91PTE3MzE5ODYxMzgwMDA.webp" alt="Logo de Heart Love FM" />
+                <img id="caratula-img" src="https://zeno.fm/_ipx/_/https://images.zeno.fm/LGol9lXeVJlVfO1bhAvAiJ7syl7nAUcaVsaDi1u-hw/rs:fill:288:288/g:ce:0:0/aHR0cHM6Ly9wcm94eS56ZW5vLmZtL2NvbnRlbnQvc3RhdGlvbnMvMTllOWM2NDktODNmZS00ZDA1LWEwNGYtY2Y5NThiNDEzMTlhL2ltYWdlLz91PTE3MzE5ODYxMzgwMDA.webp" alt="Logo de Heart Love FM" />
             </div>
         </div>
         
@@ -398,11 +435,7 @@
             
             // CONFIGURACIÓN DEL ESPECTRO DE BARRAS (Canvas)
             const BAR_COUNT = 128; 
-            // AJUSTE: El canvas se dimensionará por CSS al 100%, 
-            // pero mantenemos un valor base (350) para la lógica interna de los cálculos de espectro.
             const CANVAS_SIZE = 350; 
-            const CENTER_X = CANVAS_SIZE / 2;
-            const CENTER_Y = CANVAS_SIZE / 2;
             const MIN_RADIUS = 125; 
             const MAX_EXTEND_OUT = 60; 
             const MAX_EXTEND_IN = 10; 
@@ -416,7 +449,7 @@
             let currentSpectrumColor = NEON_COLOR_PALETTE[0]; 
             let currentColorIndex = 0; 
             
-            const defaultArt = 'https://zeno.fm/_ipx/_/https://images.zeno.fm/LGol9lXeVJlVfO1bhAvAiJ7s3yl7nAUcaVsaDi1u-hw/rs:fill:288:288/g:ce:0:0/aHR0cHM6Ly9wcm94eS56ZW5vLmZtL2NvbnRlbnQvc3RhdGlvbnMvMTllOWM2NDktODNmZS00ZDA1LWEwNGYtY2Y5NThiNDEzMTlhL2ltYWdlLz91PTE3MzE5ODYxMzgwMDA.webp'; 
+            const defaultArt = 'https://zeno.fm/_ipx/_/https://images.zeno.fm/LGol9lXeVJlVfO1bhAvAiJ7syl7nAUcaVsaDi1u-hw/rs:fill:288:288/g:ce:0:0/aHR0cHM6Ly9wcm94eS56ZW5vLmZtL2NvbnRlbnQvc3RhdGlvbnMvMTllOWM2NDktODNmZS00ZDA1LWEwNGYtY2Y5NThiNDEzMTlhL2ltYWdlLz91PTE3MzE5ODYxMzgwMDA.webp'; 
             // --------------------------------
 
             // --- REFERENCIAS DE ELEMENTOS ---
@@ -485,8 +518,8 @@
                     lyricsIntervalId = null;
                  }
                  const linesInView = lyricsArea.querySelectorAll('.lyric-line');
-                 if (linesInView.length > 0 && linesInView[0].classList.contains('active')) {
-                     linesInView[0].className = 'lyric-line fade-out'; 
+                 if (linesInView.length > 0) {
+                      linesInView.forEach(line => line.className = 'lyric-line fade-out'); 
                  }
             }
 
@@ -622,7 +655,7 @@
             }
 
 
-            // --- FUNCIONES PRINCIPALES DE CONTROL (El resto del código JavaScript es el mismo) ---
+            // --- FUNCIONES PRINCIPALES DE CONTROL Y CORRECCIÓN ---
             
             function updateStatus(message) {
                 const accentColor = `rgb(${currentSpectrumColor})`;
@@ -669,18 +702,17 @@
                         cancelAnimationFrame(animationFrameId);
                         animationFrameId = null;
                     }
-                    ctx.clearRect(0, 0, canvas.width, canvas.height); // Usar dimensiones del canvas
+                    ctx.clearRect(0, 0, canvas.width, canvas.height); 
                     return;
                 }
 
                 analyser.getByteFrequencyData(frequencyData);
-                ctx.clearRect(0, 0, canvas.width, canvas.height); // Usar dimensiones del canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height); 
                 
                 ctx.save(); 
                 
                 if (isRotating) {
                     rotationAngle += ROTATION_SPEED;
-                    // Los cálculos usan CANVAS_SIZE (350) para la lógica central
                     ctx.translate(canvas.width / 2, canvas.height / 2);
                     ctx.rotate(rotationAngle);
                     ctx.translate(-canvas.width / 2, -canvas.height / 2);
@@ -723,9 +755,9 @@
                     dataIndex = Math.min(dataIndex, normalizedAudioValues.length - 1);
                     v = normalizedAudioValues[dataIndex];
 
-                    let extendOut = v * MAX_EXTEND_OUT * (canvas.width / CANVAS_SIZE); // Escalamos extensión
-                    let extendIn = v * MAX_EXTEND_IN * (canvas.width / CANVAS_SIZE); // Escalamos extensión
-                    let currentMinRadius = MIN_RADIUS * (canvas.width / CANVAS_SIZE); // Escalamos radio mínimo
+                    let extendOut = v * MAX_EXTEND_OUT * (canvas.width / CANVAS_SIZE); 
+                    let extendIn = v * MAX_EXTEND_IN * (canvas.width / CANVAS_SIZE); 
+                    let currentMinRadius = MIN_RADIUS * (canvas.width / CANVAS_SIZE); 
 
                     const angle = (i / BAR_COUNT) * 2 * Math.PI; 
                     
@@ -756,14 +788,25 @@
                 playPauseIcon.innerHTML = `<i class="${iconMap[iconState]}"></i>`;
             }
             
+            // ⭐️ CORRECCIÓN CLAVE AQUÍ: Asegurar el initialize/resume dentro de la función de interacción
             function playRadio(attemptCount = 1) {
                 if (isPlaying) return; 
                 updateStatus('CONECTANDO');
                 updateIcon('loading'); 
+                
+                // 1. Inicializar el AudioContext y Analyser
                 initializeAudio(); 
+                
+                // 2. Resumir el AudioContext (necesario si estaba suspendido por el navegador)
                 if (audioContext && audioContext.state === 'suspended') {
-                    audioContext.resume();
+                    audioContext.resume().then(() => {
+                        console.log("AudioContext resumido con éxito.");
+                    }).catch(err => {
+                        console.error("Error al resumir AudioContext:", err);
+                    });
                 }
+
+                // 3. Cargar y Reproducir la radio
                 if (attemptCount > 1 || radio.paused) {
                     const currentSrc = radio.getAttribute('src');
                     radio.removeAttribute('src'); 
@@ -771,6 +814,7 @@
                     radio.setAttribute('src', currentSrc);
                     radio.load();
                 }
+                
                 radio.play().then(() => {
                     updateIcon('pause'); 
                     isPlaying = true;
@@ -817,7 +861,7 @@
                  if (isPlaying) {
                     stopRadio();
                 } else {
-                    playRadio(); 
+                    playRadio(); // Llamamos a la función que ahora maneja el resume/play
                 }
             });
             
@@ -872,8 +916,6 @@
                     backgroundBlur.style.transition = 'none';
                 }
             }
-            
-            // (El resto de funciones, fetchLyrics, fetchAlbumArt, startSSEListener, se mantienen sin cambios funcionales)
             
             function fetchLyrics(artist, song) { 
                 lyricsLines = []; 
@@ -941,7 +983,7 @@
                     return;
                 }
                 
-                const searchUrl = `https://ws.audioscrobbler.com/20/?method=track.search&api_key=${LASTFM_API_KEY}&artist=${encodeURIComponent(artist)}&track=${encodeURIComponent(song)}&format=json`;
+                const searchUrl = `https://ws.audioscrobbler.com/2.0/?method=track.search&api_key=${LASTFM_API_KEY}&artist=${encodeURIComponent(artist)}&track=${encodeURIComponent(song)}&format=json`;
                 
                 fetch(searchUrl)
                     .then(response => response.json())
@@ -1059,7 +1101,9 @@
             syncVolume(controlVolumen); 
             updateStatus('OFFLINE');
             
-            initializeAudio(); 
+            // ⭐️ IMPORTANTE: Eliminamos la llamada a initializeAudio() aquí para forzar la inicialización 
+            // dentro del clic del usuario, lo que evita el bloqueo de Autoplay Policy.
+            
             // CORRECCIÓN JS: Definir el tamaño del canvas al cargar para que drawSpectrum lo use.
             const visualBlock = document.getElementById('visual-block');
             const observer = new ResizeObserver(entries => {

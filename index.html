@@ -492,7 +492,6 @@
             let rotationAngle = 0; 
             let isRotating = false; 
             
-            // ** NUEVA VARIABLE CLAVE **
             let audioInitialized = false; 
             
             // --- LÓGICA DE LYRICS CON AUTO-SCROLL/RESALTADO (CC SIMULADO) ---
@@ -686,10 +685,11 @@
                 }
             }
             
-            // ** FUNCIÓN initializeAudio() - AJUSTADA (Solo se ejecuta una vez al primer clic) **
+            // ** FUNCIÓN initializeAudio() - LIGERA MODIFICACIÓN **
             function initializeAudio() {
                 if (audioInitialized) return; 
                 
+                // Inicialización de AudioContext
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 
                 // Analizador
@@ -724,6 +724,7 @@
                 
                 if (isRotating) {
                     rotationAngle += ROTATION_SPEED;
+                    // Los cálculos usan CANVAS_SIZE (350) para la lógica central
                     ctx.translate(canvas.width / 2, canvas.height / 2);
                     ctx.rotate(rotationAngle);
                     ctx.translate(-canvas.width / 2, -canvas.height / 2);
@@ -799,18 +800,23 @@
                 playPauseIcon.innerHTML = `<i class="${iconMap[iconState]}"></i>`;
             }
             
-            // ** FUNCIÓN playRadio() - CORREGIDA (Llama a initializeAudio) **
-            function playRadio(attemptCount = 1) {
+            // ** FUNCIÓN playRadio() - CORRECCIÓN DEFINITIVA CON ASYNC/AWAIT **
+            async function playRadio(attemptCount = 1) {
                 if (isPlaying) return; 
                 updateStatus('CONECTANDO');
                 updateIcon('loading'); 
                 
-                // 1. INICIALIZA EL AUDIO CONTEXT DENTRO DEL EVENTO DE USUARIO (SOLUCIÓN CLAVE)
+                // 1. INICIALIZA EL AUDIO CONTEXT (Solo si es la primera vez)
                 initializeAudio(); 
                 
-                // 2. ASEGURA QUE EL CONTEXTO NO ESTÉ SUSPENDIDO
+                // 2. FORZAR LA REANUDACIÓN DEL CONTEXTO DE AUDIO JUSTO ANTES DE HACER PLAY
                 if (audioContext && audioContext.state === 'suspended') {
-                    audioContext.resume();
+                    try {
+                        await audioContext.resume();
+                        console.log("AudioContext reanudado con éxito.");
+                    } catch(e) {
+                        console.error("Fallo al intentar reanudar AudioContext:", e);
+                    }
                 }
 
                 // (Lógica de re-carga del stream si es necesario)
@@ -841,11 +847,15 @@
 
                 }).catch(error => {
                     console.error(`Error al reproducir el stream (Intento ${attemptCount}):`, error);
+                    
+                    // Si el error persiste, reintentamos una vez y luego fallamos con una alerta.
                     if (attemptCount === 1) {
-                         setTimeout(() => playRadio(2), 500); 
+                         updateStatus('CONECTANDO (Reintento)');
+                         setTimeout(() => playRadio(2), 1000); 
                     } else {
-                        updateStatus('OFFLINE (Error)');
+                        updateStatus('OFFLINE (Bloqueo de Audio)');
                         updateIcon('play'); 
+                        alert('El navegador de tu TV está bloqueando la reproducción automática. Intenta tocar la pantalla/botón varias veces o busca la opción "Permitir audio" en la configuración de privacidad del navegador de tu TV.');
                     }
                 });
             }
@@ -1110,14 +1120,13 @@
             syncVolume(controlVolumen); 
             updateStatus('OFFLINE');
             
-            // El AudioContext se inicializará la primera vez que se llame a playRadio() (CORRECCIÓN CLAVE)
-            
-            // OBSERVER PARA EL AJUSTE DE CANVAS
+            // ** OBSERVER PARA EL AJUSTE DE CANVAS (ANTI-OVALADO) **
             const visualBlock = document.getElementById('visual-block');
             const observer = new ResizeObserver(entries => {
                 for (let entry of entries) {
                     const width = entry.contentRect.width;
                     const height = entry.contentRect.height;
+                    // Asegura que las dimensiones del Canvas sean las del contenedor cuadrado
                     canvas.width = width;
                     canvas.height = height;
                 }

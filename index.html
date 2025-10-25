@@ -212,7 +212,7 @@
             box-sizing: content-box; 
         }
         
-        /* Estilos específicos del slider (el punto o "thumb") */
+        /* Slider Thumb */
         #volumen-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
@@ -221,18 +221,18 @@
             border-radius: 50%;
             background: var(--color-neon-accent);
             cursor: pointer;
-            box-shadow: 0 0 5px var(--color-neon-accent);
             border: 2px solid #fff;
+            box-shadow: 0 0 8px rgba(255, 0, 127, 0.8);
         }
-        
+
         #volumen-slider::-moz-range-thumb {
             width: 16px;
             height: 16px;
             border-radius: 50%;
             background: var(--color-neon-accent);
             cursor: pointer;
-            box-shadow: 0 0 5px var(--color-neon-accent);
             border: 2px solid #fff;
+            box-shadow: 0 0 8px rgba(255, 0, 127, 0.8);
         }
 
         /* --- ÁREA DE LETRAS (CC SIMULADO) --- */
@@ -305,27 +305,30 @@
             box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
             border: 1px solid rgba(255, 255, 255, 0.2); 
             text-align: center;
-            transition: transform 0.3s ease-out; 
+            transition: transform 0.3s ease-out; /* Para el efecto de scroll */
         }
         
-        /* Línea de letra */
+        /* Estilos de línea de letra */
         .lyric-line {
             padding: 5px 0;
-            margin-bottom: 5px;
-            font-size: 16px;
+            transition: all 0.3s ease-out;
             color: var(--text-faded);
-            transition: color 0.3s, font-weight 0.3s, text-shadow 0.3s;
-            line-height: 1.4;
+            font-size: 16px;
         }
-        
-        /* Línea activa (CC) */
+
         .lyric-line.active {
             color: var(--color-neon-accent);
             font-weight: 700;
-            text-shadow: 0 0 5px rgba(255, 0, 127, 0.9);
-            transform: scale(1.05);
+            font-size: 18px;
+            text-shadow: 0 0 5px rgba(255, 0, 127, 0.7);
         }
         
+        /* Estilo para las líneas que se desvanecen (por encima de la vista) */
+        .lyric-line.fade-out {
+            opacity: 0.6;
+            transform: scale(0.95);
+        }
+
         /* Media Query para pantallas grandes (PC, TV) */
         @media (min-width: 800px) {
             #player-container {
@@ -377,7 +380,7 @@
             <canvas id="audio-visualizer-canvas" width="400" height="400"></canvas>
             
             <div id="caratula-container">
-                <img id="caratula-img" src="https://zeno.fm/_ipx/_/https://images.zeno.fm/LGol9lXeVJlVfO1bhAvAiJ7syl7nAUcaVsaDi1u-hw/rs:fill:288:288/g:ce:0:0/aHR0cHM6Ly9wcm94eS56ZW5vLmZtL2NvbnRlbnQvc3RhdGlvbnMvMTllOWM2NDktODNmZS00ZDA1LWEwNGYtY2Y5NThiNDEzMTlhL2ltYWdlLz91PTE3MzE5ODYxMzgwMDA.webp" alt="Logo de Heart Love FM" />
+                <img id="caratula-img" src="https://zeno.fm/_ipx/_/https://images.zeno.fm/LGol9lXeVJlVfO1bhAvAiJ7s3yl7nAUcaVsaDi1u-hw/rs:fill:288:288/g:ce:0:0/aHR0cHM6Ly9wcm94eS56ZW5vLmZtL2NvbnRlbnQvc3RhdGlvbnMvMTllOWM2NDktODNmZS00ZDA1LWEwNGYtY2Y5NThiNDEzMTlhL2ltYWdlLz91PTE3MzE5ODYxMzgwMDA.webp" alt="Logo de Heart Love FM" />
             </div>
         </div>
         
@@ -436,6 +439,8 @@
             // CONFIGURACIÓN DEL ESPECTRO DE BARRAS (Canvas)
             const BAR_COUNT = 128; 
             const CANVAS_SIZE = 350; 
+            const CENTER_X = CANVAS_SIZE / 2;
+            const CENTER_Y = CANVAS_SIZE / 2;
             const MIN_RADIUS = 125; 
             const MAX_EXTEND_OUT = 60; 
             const MAX_EXTEND_IN = 10; 
@@ -449,7 +454,7 @@
             let currentSpectrumColor = NEON_COLOR_PALETTE[0]; 
             let currentColorIndex = 0; 
             
-            const defaultArt = 'https://zeno.fm/_ipx/_/https://images.zeno.fm/LGol9lXeVJlVfO1bhAvAiJ7syl7nAUcaVsaDi1u-hw/rs:fill:288:288/g:ce:0:0/aHR0cHM6Ly9wcm94eS56ZW5vLmZtL2NvbnRlbnQvc3RhdGlvbnMvMTllOWM2NDktODNmZS00ZDA1LWEwNGYtY2Y5NThiNDEzMTlhL2ltYWdlLz91PTE3MzE5ODYxMzgwMDA.webp'; 
+            const defaultArt = 'https://zeno.fm/_ipx/_/https://images.zeno.fm/LGol9lXeVJlVfO1bhAvAiJ7s3yl7nAUcaVsaDi1u-hw/rs:fill:288:288/g:ce:0:0/aHR0cHM6Ly9wcm94eS56ZW5vLmZtL2NvbnRlbnQvc3RhdGlvbnMvMTllOWM2NDktODNmZS00ZDA1LWEwNGYtY2Y5NThiNDEzMTlhL2ltYWdlLz91PTE3MzE5ODYxMzgwMDA.webp'; 
             // --------------------------------
 
             // --- REFERENCIAS DE ELEMENTOS ---
@@ -487,6 +492,9 @@
             let rotationAngle = 0; 
             let isRotating = false; 
             
+            // ** NUEVA VARIABLE CLAVE **
+            let audioInitialized = false; 
+            
             // --- LÓGICA DE LYRICS CON AUTO-SCROLL/RESALTADO (CC SIMULADO) ---
             let lyricsLines = [];
             let currentLineIndex = 0;
@@ -518,8 +526,8 @@
                     lyricsIntervalId = null;
                  }
                  const linesInView = lyricsArea.querySelectorAll('.lyric-line');
-                 if (linesInView.length > 0) {
-                      linesInView.forEach(line => line.className = 'lyric-line fade-out'); 
+                 if (linesInView.length > 0 && linesInView[0].classList.contains('active')) {
+                     linesInView[0].className = 'lyric-line fade-out'; 
                  }
             }
 
@@ -655,7 +663,7 @@
             }
 
 
-            // --- FUNCIONES PRINCIPALES DE CONTROL Y CORRECCIÓN ---
+            // --- FUNCIONES PRINCIPALES DE CONTROL ---
             
             function updateStatus(message) {
                 const accentColor = `rgb(${currentSpectrumColor})`;
@@ -678,22 +686,25 @@
                 }
             }
             
+            // ** FUNCIÓN initializeAudio() - AJUSTADA (Solo se ejecuta una vez al primer clic) **
             function initializeAudio() {
-                if (!audioContext) {
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (!analyser) {
-                    analyser = audioContext.createAnalyser();
-                    analyser.fftSize = 512; 
-                    analyser.minDecibels = -90;
-                    analyser.maxDecibels = -10;
-                }
-                if (!source) {
-                    source = audioContext.createMediaElementSource(radio);
-                    source.connect(analyser);
-                    analyser.connect(audioContext.destination);
-                }
+                if (audioInitialized) return; 
+                
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Analizador
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 512; 
+                analyser.minDecibels = -90;
+                analyser.maxDecibels = -10;
+                
+                // Conexión del grafo de audio
+                source = audioContext.createMediaElementSource(radio);
+                source.connect(analyser);
+                analyser.connect(audioContext.destination);
+                
                 frequencyData = new Uint8Array(analyser.frequencyBinCount);
+                audioInitialized = true; // Marcar como inicializado
             }
             
             function drawSpectrum() {
@@ -788,25 +799,21 @@
                 playPauseIcon.innerHTML = `<i class="${iconMap[iconState]}"></i>`;
             }
             
-            // ⭐️ CORRECCIÓN CLAVE AQUÍ: Asegurar el initialize/resume dentro de la función de interacción
+            // ** FUNCIÓN playRadio() - CORREGIDA (Llama a initializeAudio) **
             function playRadio(attemptCount = 1) {
                 if (isPlaying) return; 
                 updateStatus('CONECTANDO');
                 updateIcon('loading'); 
                 
-                // 1. Inicializar el AudioContext y Analyser
+                // 1. INICIALIZA EL AUDIO CONTEXT DENTRO DEL EVENTO DE USUARIO (SOLUCIÓN CLAVE)
                 initializeAudio(); 
                 
-                // 2. Resumir el AudioContext (necesario si estaba suspendido por el navegador)
+                // 2. ASEGURA QUE EL CONTEXTO NO ESTÉ SUSPENDIDO
                 if (audioContext && audioContext.state === 'suspended') {
-                    audioContext.resume().then(() => {
-                        console.log("AudioContext resumido con éxito.");
-                    }).catch(err => {
-                        console.error("Error al resumir AudioContext:", err);
-                    });
+                    audioContext.resume();
                 }
 
-                // 3. Cargar y Reproducir la radio
+                // (Lógica de re-carga del stream si es necesario)
                 if (attemptCount > 1 || radio.paused) {
                     const currentSrc = radio.getAttribute('src');
                     radio.removeAttribute('src'); 
@@ -815,6 +822,7 @@
                     radio.load();
                 }
                 
+                // 3. LLAMA A play()
                 radio.play().then(() => {
                     updateIcon('pause'); 
                     isPlaying = true;
@@ -861,7 +869,7 @@
                  if (isPlaying) {
                     stopRadio();
                 } else {
-                    playRadio(); // Llamamos a la función que ahora maneja el resume/play
+                    playRadio(); 
                 }
             });
             
@@ -916,6 +924,7 @@
                     backgroundBlur.style.transition = 'none';
                 }
             }
+            
             
             function fetchLyrics(artist, song) { 
                 lyricsLines = []; 
@@ -983,7 +992,7 @@
                     return;
                 }
                 
-                const searchUrl = `https://ws.audioscrobbler.com/2.0/?method=track.search&api_key=${LASTFM_API_KEY}&artist=${encodeURIComponent(artist)}&track=${encodeURIComponent(song)}&format=json`;
+                const searchUrl = `https://ws.audioscrobbler.com/20/?method=track.search&api_key=${LASTFM_API_KEY}&artist=${encodeURIComponent(artist)}&track=${encodeURIComponent(song)}&format=json`;
                 
                 fetch(searchUrl)
                     .then(response => response.json())
@@ -1101,10 +1110,9 @@
             syncVolume(controlVolumen); 
             updateStatus('OFFLINE');
             
-            // ⭐️ IMPORTANTE: Eliminamos la llamada a initializeAudio() aquí para forzar la inicialización 
-            // dentro del clic del usuario, lo que evita el bloqueo de Autoplay Policy.
+            // El AudioContext se inicializará la primera vez que se llame a playRadio() (CORRECCIÓN CLAVE)
             
-            // CORRECCIÓN JS: Definir el tamaño del canvas al cargar para que drawSpectrum lo use.
+            // OBSERVER PARA EL AJUSTE DE CANVAS
             const visualBlock = document.getElementById('visual-block');
             const observer = new ResizeObserver(entries => {
                 for (let entry of entries) {

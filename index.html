@@ -151,13 +151,17 @@
             min-height: 80px; 
         }
         
-        #btn-play-pause-container {
+        /* Contenedor central de los botones */
+        #botones-accion {
+            display: flex;
+            justify-content: center;
+            align-items: center;
             position: relative;
             z-index: 3; 
         }
 
-        /* --- BOTÓN PRINCIPAL --- */
-        #btn-play-pause {
+        /* --- ESTILO BASE DEL BOTÓN PRINCIPAL (APLICADO A PLAY Y STOP) --- */
+        #btn-play, #btn-stop {
             background-color: var(--color-neon-accent);
             color: #fff;
             border: 4px solid #fff; 
@@ -172,15 +176,17 @@
             box-shadow: 0 0 15px var(--color-neon-accent), 0 0 30px rgba(255, 255, 255, 0.5) inset;
             transition: transform 0.2s, background-color 0.2s, box-shadow 0.5s ease-in-out;
             margin: 0 20px; 
+            padding: 0;
+            border: none;
         }
-        #btn-play-pause:hover {
+        #btn-play:hover, #btn-stop:hover {
             transform: scale(1.05);
             background-color: #ff3399;
         }
-        #play-pause-icon {
-            font-size: 30px; 
-            margin-left: 3px;
+        #btn-play i {
+             margin-left: 3px; /* Ajuste óptico para el icono de play */
         }
+
 
         /* --- VOLUMEN CONTENEDORES --- */
         .volumen-container {
@@ -396,12 +402,14 @@
                 <input type="range" id="volumen-slider" min="0" max="1" step="0.01" value="0.5">
             </div>
             
-            <div id="btn-play-pause-container">
-                <button id="btn-play-pause">
-                    <span id="play-pause-icon"><i class="fa-solid fa-play fa-fade"></i></span>
+            <div id="botones-accion">
+                <button id="btn-stop" style="display: none;">
+                    <i class="fa-solid fa-stop fa-fade"></i>
+                </button>
+                <button id="btn-play">
+                    <i class="fa-solid fa-play fa-fade"></i>
                 </button>
             </div>
-            
             <div id="volumen-der" class="volumen-container"></div>
         </div>
         
@@ -457,8 +465,10 @@
 
             // --- REFERENCIAS DE ELEMENTOS ---
             const radio = document.getElementById('radio-stream');
-            const btnPlayPause = document.getElementById('btn-play-pause');
-            const playPauseIcon = document.getElementById('play-pause-icon');
+            // ** CAMBIO: Referencias a botones separados **
+            const btnPlay = document.getElementById('btn-play'); 
+            const btnStop = document.getElementById('btn-stop'); 
+            // ** FIN CAMBIO **
             
             const controlVolumen = document.getElementById('volumen-slider'); 
             const volumeIcon = document.getElementById('volume-icon'); 
@@ -665,8 +675,11 @@
             function updateStatus(message) {
                 const accentColor = `rgb(${currentSpectrumColor})`;
                 
-                btnPlayPause.style.boxShadow = `0 0 15px ${accentColor}, 0 0 30px rgba(255, 255, 255, 0.5) inset`;
-                btnPlayPause.style.borderColor = `rgb(${currentSpectrumColor.split(',').map(c => Math.min(255, parseInt(c.trim()) + 50)).join(',')})`; 
+                const currentButton = isPlaying ? btnStop : btnPlay;
+                
+                // Aplicar sombras al botón visible
+                currentButton.style.boxShadow = `0 0 15px ${accentColor}, 0 0 30px rgba(255, 255, 255, 0.5) inset`;
+                currentButton.style.borderColor = `rgb(${currentSpectrumColor.split(',').map(c => Math.min(255, parseInt(c.trim()) + 50)).join(',')})`; 
                 
                 onlineText.innerHTML = `• <span style="color:${accentColor};">${message.toUpperCase()}</span>`;
                 onlineText.style.textShadow = `0 0 8px rgba(${accentColor}, 0.7)`;
@@ -674,16 +687,16 @@
                 if (message.includes('PAUSA') || message.includes('OFFLINE') || message.includes('MUTE') || message.includes('Bloqueo')) {
                     onlineText.innerHTML = `• <span style="color:#888888;">${message.toUpperCase()}</span>`;
                     onlineText.style.textShadow = 'none';
-                    btnPlayPause.style.boxShadow = '0 0 10px rgba(255, 0, 127, 0.8)';
-                    btnPlayPause.style.borderColor = '#fff';
+                    btnPlay.style.boxShadow = '0 0 10px rgba(255, 0, 127, 0.8)';
+                    btnPlay.style.borderColor = '#fff';
                 }
                 if (message.includes('CONECTANDO') || message.includes('Error')) {
                     onlineText.innerHTML = `• <span style="color:orange;">${message.toUpperCase()}</span>`;
-                    onlineText.style.textShadow = '0 0 8px rgba(255, 165, 0, 0.7)';
+                    onlineText.style.textShadow = `0 0 8px rgba(255, 165, 0, 0.7)`;
                 }
             }
             
-            // ** FUNCIÓN initializeAudio() - CON MANEJO DE ERRORES (Aislar AudioContext) **
+            // ** FUNCIÓN initializeAudio() - Intentar siempre inicializar espectro **
             function initializeAudio() {
                 if (audioInitialized) return; 
                 
@@ -703,11 +716,10 @@
                     analyser.connect(audioContext.destination);
                     
                     frequencyData = new Uint8Array(analyser.frequencyBinCount);
-                    console.log("AudioContext y grafo inicializado CON ÉXITO.");
+                    console.log("AudioContext y grafo inicializado.");
                     
                 } catch (e) {
-                    // Si falla, el script sigue, pero sin espectro.
-                    console.error("Fallo al inicializar AudioContext (Espectro deshabilitado en este dispositivo):", e);
+                    console.error("Fallo al inicializar AudioContext (Puede ser normal en navegadores estrictos):", e);
                     audioContext = null;
                     analyser = null;
                     source = null;
@@ -724,6 +736,13 @@
                         animationFrameId = null;
                     }
                     ctx.clearRect(0, 0, canvas.width, canvas.height); 
+                    return;
+                }
+                
+                // Si el contexto existe pero está suspendido, no dibujamos.
+                if (audioContext && audioContext.state === 'suspended' && audioInitialized) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height); 
+                    animationFrameId = requestAnimationFrame(drawSpectrum);
                     return;
                 }
 
@@ -801,72 +820,73 @@
                 animationFrameId = requestAnimationFrame(drawSpectrum);
             }
             
+            // ** FUNCIÓN updateIcon MODIFICADA PARA BOTONES SEPARADOS **
             function updateIcon(iconState) {
-                const iconMap = {
-                    'play': 'fa-solid fa-play fa-fade',
-                    'pause': 'fa-solid fa-pause fa-fade',
-                    'loading': 'fa-solid fa-arrows-rotate fa-fade'
-                };
-                playPauseIcon.innerHTML = `<i class="${iconMap[iconState]}"></i>`;
+                // Ocultar Stop y mostrar Play/Loading
+                if (iconState === 'loading' || iconState === 'play') {
+                    btnPlay.style.display = 'flex';
+                    btnStop.style.display = 'none';
+                    const iconClass = (iconState === 'loading') ? 'fa-solid fa-arrows-rotate fa-fade' : 'fa-solid fa-play fa-fade';
+                    btnPlay.querySelector('i').className = iconClass;
+
+                // Ocultar Play y mostrar Stop
+                } else if (iconState === 'pause' || iconState === 'stop') {
+                     btnPlay.style.display = 'none';
+                     btnStop.style.display = 'flex';
+                     btnStop.querySelector('i').className = 'fa-solid fa-stop fa-fade';
+                }
             }
             
-            // ** FUNCIÓN playRadio() - MÍNIMO ESFUERZO TRAS EL CLIC **
+            // ** FUNCIÓN playRadio() - SIN COMPROBACIÓN DE ESTADO INTERNO **
             async function playRadio() {
-                if (isPlaying) return; 
                 
                 updateStatus('CONECTANDO');
                 updateIcon('loading'); 
                 
-                // 1. Inicializar el AudioContext (si falla, solo el espectro se deshabilita)
+                // 1. Inicializar AudioContext (Espectro)
                 initializeAudio(); 
                 
-                // 2. Intentar desbloquear el AudioContext (si existe)
+                // 2. Intentar desbloquear AudioContext (si es necesario)
                 if (audioContext && audioContext.state === 'suspended') {
                     try {
                         await audioContext.resume();
-                        console.log("AudioContext reanudado (si existía).");
                     } catch(e) {
-                        console.warn("AudioContext no se pudo reanudar o no existe. Continuar con play().");
+                        console.warn("AudioContext no se pudo reanudar.");
                     }
                 }
                 
                 // 3. Llamar a play() inmediatamente
                 radio.play().then(() => {
                     // ÉXITO
-                    updateIcon('pause'); 
                     isPlaying = true;
+                    updateIcon('pause'); // Muestra el botón de Stop
                     updateStatus('ONLINE'); 
                     startSSEListener(); 
                     isRotating = true; 
                     
                     if (analyser) {
                         requestAnimationFrame(drawSpectrum); 
-                    } else {
-                        isRotating = false; 
                     }
                     
                     // Lógica de Lyrics
-                    if (lyricsLines.length > LINES_PER_PAGE && scrollIntervalTime > 0) {
+                    if (lastSong && lyricsLines.length === 0) {
+                         fetchLyrics(artistaDisplay.textContent, cancionDisplay.textContent);
+                    } else if (lyricsLines.length > LINES_PER_PAGE && scrollIntervalTime > 0) {
                          resumeLyricsAutoScroll(); 
-                    } else if (lastSong && lyricsLines.length === 0) {
-                         const currentArtist = artistaDisplay.textContent;
-                         const currentSong = cancionDisplay.textContent;
-                         fetchLyrics(currentArtist, currentSong);
                     }
 
                 }).catch(error => {
                     console.error(`Error al reproducir el stream:`, error);
                     
                     updateStatus('OFFLINE (Bloqueo)');
-                    updateIcon('play'); 
+                    updateIcon('play'); // Muestra el botón de Play
                     
-                    alert('La radio no se pudo iniciar. Intente de nuevo o use un navegador diferente.');
+                    alert('La radio no se pudo iniciar. Intente de nuevo.');
                 });
             }
             
-            // ** FUNCIÓN stopRadio() - CON RECARGA DE STREAM **
+            // ** FUNCIÓN stopRadio() - SIN COMPROBACIÓN DE ESTADO INTERNO **
             function stopRadio() {
-                if (!isPlaying) return;
                 
                 radio.pause();
                 
@@ -878,8 +898,9 @@
                 radio.load();
                 
                 if (eventSource) eventSource.close(); 
-                updateIcon('play'); 
+                
                 isPlaying = false;
+                updateIcon('play'); // Muestra el botón de Play
                 updateStatus('PAUSA');
                 
                 isRotating = false; 
@@ -888,13 +909,10 @@
                 stopLyricsAutoScroll();
             }
 
-            btnPlayPause.addEventListener('click', () => {
-                 if (isPlaying) {
-                    stopRadio();
-                } else {
-                    playRadio(); 
-                }
-            });
+            // ** CAMBIO: Nuevos Event Listeners **
+            btnPlay.addEventListener('click', playRadio);
+            btnStop.addEventListener('click', stopRadio);
+            // ** FIN CAMBIO **
             
             function syncVolume(slider) {
                 radio.volume = parseFloat(slider.value);

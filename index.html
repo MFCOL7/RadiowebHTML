@@ -456,7 +456,7 @@
             // --------------------------------
 
             // --- REFERENCIAS DE ELEMENTOS ---
-            const radio = document.getElementById('radio-stream'); // CONST se mantiene
+            const radio = document.getElementById('radio-stream');
             const btnPlayPause = document.getElementById('btn-play-pause');
             const playPauseIcon = document.getElementById('play-pause-icon');
             
@@ -683,7 +683,7 @@
                 }
             }
             
-            // ** FUNCIÓN initializeAudio() - CON MANEJO DE ERRORES **
+            // ** FUNCIÓN initializeAudio() - CON MANEJO DE ERRORES (Aislar AudioContext) **
             function initializeAudio() {
                 if (audioInitialized) return; 
                 
@@ -706,15 +706,14 @@
                     console.log("AudioContext y grafo inicializado CON ÉXITO.");
                     
                 } catch (e) {
-                    // ¡Si falla, es el bloqueo de la TV! Lo reportamos y dejamos las variables en null.
+                    // Si falla, el script sigue, pero sin espectro.
                     console.error("Fallo al inicializar AudioContext (Espectro deshabilitado en este dispositivo):", e);
                     audioContext = null;
                     analyser = null;
                     source = null;
-                    // La reproducción seguirá sin espectro.
                 }
                 
-                audioInitialized = true; // Marcamos como inicializado de todas formas
+                audioInitialized = true;
             }
             
             function drawSpectrum() {
@@ -811,13 +810,14 @@
                 playPauseIcon.innerHTML = `<i class="${iconMap[iconState]}"></i>`;
             }
             
-            // ** FUNCIÓN playRadio() - RESTAURADA CON RECARGA DE STREAM **
-            async function playRadio(attemptCount = 1) {
+            // ** FUNCIÓN playRadio() - MÍNIMO ESFUERZO TRAS EL CLIC **
+            async function playRadio() {
                 if (isPlaying) return; 
+                
                 updateStatus('CONECTANDO');
                 updateIcon('loading'); 
                 
-                // 1. Inicializar el AudioContext (incluye manejo de errores de TV)
+                // 1. Inicializar el AudioContext (si falla, solo el espectro se deshabilita)
                 initializeAudio(); 
                 
                 // 2. Intentar desbloquear el AudioContext (si existe)
@@ -830,17 +830,7 @@
                     }
                 }
                 
-                // 3. RECUPERAMOS EL REFRESCADO/RECARGA DEL STREAM
-                // Detener y forzar recarga (Esto soluciona el problema de 'refresco' en el celular)
-                const currentSrc = radio.src;
-                radio.pause();
-                // Limpiar la fuente, cargar, y reasignar (forzar reconexión)
-                radio.src = ''; 
-                radio.load();
-                radio.src = currentSrc;
-                radio.load();
-
-                // 4. Llamar a play()
+                // 3. Llamar a play() inmediatamente
                 radio.play().then(() => {
                     // ÉXITO
                     updateIcon('pause'); 
@@ -849,11 +839,9 @@
                     startSSEListener(); 
                     isRotating = true; 
                     
-                    // Solo iniciamos el espectro si el analizador fue creado con éxito
                     if (analyser) {
                         requestAnimationFrame(drawSpectrum); 
                     } else {
-                        // Si el analizador es null (falla en TV), la rotación visual del disco debe detenerse
                         isRotating = false; 
                     }
                     
@@ -872,22 +860,28 @@
                     updateStatus('OFFLINE (Bloqueo)');
                     updateIcon('play'); 
                     
-                    // Error de política de autoplay.
-                    alert('La radio no se pudo iniciar. Es muy probable que tu TV esté bloqueando el componente visual (AudioContext). La radio debería funcionar con el diseño simple si desactivamos el espectro.');
+                    alert('La radio no se pudo iniciar. Intente de nuevo o use un navegador diferente.');
                 });
             }
             
+            // ** FUNCIÓN stopRadio() - CON RECARGA DE STREAM **
             function stopRadio() {
                 if (!isPlaying) return;
                 
                 radio.pause();
+                
+                // LÓGICA DE RECARGA: Forzar la desconexión y reconexión del stream para el siguiente PLAY
+                const currentSrc = radio.src;
+                radio.src = ''; 
+                radio.load();
+                radio.src = currentSrc;
+                radio.load();
                 
                 if (eventSource) eventSource.close(); 
                 updateIcon('play'); 
                 isPlaying = false;
                 updateStatus('PAUSA');
                 
-                // Detenemos siempre la rotación y el espectro al dar pausa
                 isRotating = false; 
                 drawSpectrum(); 
                 

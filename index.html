@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Radio Player - SOLUCIÓN VEWD FINAL</title>
+    <title>Web Radio Player - SOLUCIÓN FINAL (VEWD)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     
     <style>
-        /* (Estilos CSS idénticos) */
+        /* (Estilos CSS idénticos para mantener el diseño) */
         :root {
             --color-accent: #ff007f;
             --main-bg: #121212; 
@@ -188,6 +188,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // *** CONFIGURACIÓN CLAVE ***
+            const STREAM_URL = 'https://stream.zeno.fm/cr8evht2huruv';
             const METADATA_PROXY_URL = 'https://api.zeno.fm/mounts/metadata/subscribe/cr8evht2huruv'; 
             const LASTFM_API_KEY = '217df5ef951f0b3813906b25c5cb5448'; 
             const ALBUM_ART_PROXY_URL = 'https://images.weserv.nl/?url='; 
@@ -216,7 +217,6 @@
 
             // --- FUNCIONES DE INTERFAZ ---
             function updateStatus(message) {
-                // ... (Función de estado se mantiene)
                 const accentColor = `rgb(${ACCENT_COLOR_RGB})`;
                 onlineText.innerHTML = `• <span style="color:${accentColor};">${message.toUpperCase()}</span>`;
                 if (message.includes('PAUSA') || message.includes('OFFLINE') || message.includes('MUTE') || message.includes('Bloqueo')) {
@@ -228,7 +228,6 @@
             }
             
             function updateIcon(iconState) {
-                // ... (Función de icono se mantiene)
                 if (iconState === 'loading' || iconState === 'play') {
                     btnPlay.style.display = 'flex';
                     btnStop.style.display = 'none';
@@ -241,7 +240,7 @@
                 }
             }
 
-            // --- LÓGICA DE METADATOS Y CARÁTULA (Se mantiene igual, solo se llama desde 'playing') ---
+            // --- LÓGICA DE METADATOS (Se mantiene) ---
             function cleanTitle(title) {
                 title = title.replace(/\([^)]+\)/g, '').trim(); 
                 title = title.replace(/\[[^\]]+\]/g, '').trim();
@@ -251,7 +250,7 @@
                 title = title.replace(/\s+/g, ' ').trim();
                 return title; 
             }
-
+            
             function fetchAlbumArtFallback(artist) { 
                  const fallbackUrl = `https://ws.audioscrobbler.com/2.0/?method=artist.gettopalbums&api_key=${LASTFM_API_KEY}&artist=${encodeURIComponent(artist)}&limit=1&format=json`;
                  fetch(fallbackUrl) 
@@ -364,36 +363,37 @@
                 };
             }
 
-
-            // --- CONTROL PRINCIPAL (CRÍTICO - Ultra, Ultra, Ultra simple) ---
+            // --- CONTROL PRINCIPAL (CRÍTICO - FORZADO) ---
             
             function playRadio() {
                 if (isPlaying) return;
                 
                 updateStatus('CONECTANDO');
                 updateIcon('loading'); 
+                caratulaImg.src = LOADING_GIF;
                 
-                // 1. **Acción más crucial**: Restaurar volumen ANTES de play()
-                radio.volume = controlVolumen.value; // El volumen no será 0.5 sino el valor del slider
-                
-                // 2. **LLAMADA MÁS SIMPLE POSIBLE**: Sin promesas, sin if/else.
-                // Si la TV lo permite, empieza a sonar. Si no, lo bloquea.
+                // 1. FORZAR LA RECARGA: Esto imita la acción de ir al link directo.
+                // Reasigna el mismo SRC y carga el stream de nuevo
+                radio.src = STREAM_URL; 
+                radio.load();
+
+                // 2. Acción CRÍTICA: Establecer volumen y llamar a play inmediatamente.
+                radio.volume = controlVolumen.value;
                 radio.play();
                 
-                // 3. Informar visualmente del inicio de la carga
-                caratulaImg.src = LOADING_GIF;
+                // Si la reproducción falla aquí, el error será capturado por radio.addEventListener('error')
             }
             
             function stopRadio() {
-                // ... (Función de stop se mantiene)
                 radio.pause();
                 
+                // Cierra la fuente de datos si está abierta
                 if (eventSource) { eventSource.close(); eventSource = null; }
 
-                const currentSrc = radio.src;
+                // Restablecer el estado del audio para una nueva reproducción
                 radio.src = ''; 
                 radio.load();
-                radio.src = currentSrc;
+                radio.src = STREAM_URL;
                 radio.load();
                 
                 isPlaying = false;
@@ -407,12 +407,12 @@
             
             // --- EVENT LISTENERS ---
             
-            // Evento CRÍTICO: Dispara metadatos solo cuando el audio está sonando.
+            // Evento CRÍTICO: Dispara metadatos solo cuando el navegador confirma que el audio está SONANDO.
             radio.addEventListener('playing', () => {
                 if (!isPlaying) {
                     isPlaying = true;
                     updateIcon('pause'); 
-                    startPlayer(); // Carga de metadatos/carátula solo si el audio está activo.
+                    startPlayer(); 
                 }
             });
 
@@ -423,21 +423,18 @@
 
             radio.addEventListener('error', (e) => {
                 console.error('Error de audio:', e);
-                updateStatus('Error de Stream (VEWD)');
+                updateStatus('Error de Stream');
                 updateIcon('play'); 
                 isPlaying = false;
+                // Alerta para el usuario, ya que el VEWD bloquea silenciosamente
+                alert('El navegador VEWD ha bloqueado la reproducción de audio.');
             });
             
-            // Usamos touchstart como un evento más "confiable" en algunos TV/móviles
             btnPlay.addEventListener('click', playRadio);
-            btnPlay.addEventListener('touchstart', playRadio); 
             btnStop.addEventListener('click', stopRadio);
-            btnStop.addEventListener('touchstart', stopRadio);
-            
             
             // --- LÓGICA DE VOLUMEN ---
             function syncVolume(slider) {
-                // ... (Función de volumen se mantiene)
                 const newVolume = parseFloat(slider.value);
                 radio.volume = newVolume;
                 
@@ -456,7 +453,7 @@
             
             // Inicialización al cargar la página
             caratulaImg.src = defaultArt;
-            radio.volume = controlVolumen.value; // Inicializa el volumen de audio al valor del slider
+            radio.volume = controlVolumen.value;
             syncVolume(controlVolumen); 
             updateStatus('OFFLINE');
         });

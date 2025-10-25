@@ -3,24 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Radio Player - HEART LOVE FM (Espectro Neón)</title>
+    <title>Web Radio Player - Básico</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     
     <style>
-        /* --- FUENTES Y COLORES BASE (Dark Mode, Neón) --- */
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
-        
+        /* --- ESTILOS MÍNIMOS Y CLAROS --- */
         :root {
-            --color-neon-accent: #ff007f; /* Rosa Neón (Romance) para acentos */
-            --main-bg-fallback: #121212; 
+            --color-accent: #ff007f; /* Rosa Neón */
+            --main-bg: #121212; 
             --text-light: #ffffff;
             --text-faded: #a0a0a0;
         }
 
-        /* --- ESTILOS BASE Y CENTRADO --- */
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: var(--main-bg-fallback);
+            font-family: sans-serif;
+            background-color: var(--main-bg);
             color: var(--text-light);
             min-height: 100vh;
             margin: 0;
@@ -29,348 +26,145 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            font-size: 14px;
-            overflow-x: hidden; 
-            position: relative;
+            text-align: center;
         }
 
-        /* --- FONDO DE IMAGEN BORROSA --- */
-        #background-blur {
-            position: fixed; 
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            background-position: center;
-            filter: blur(50px) brightness(0.7); 
-            transform: scale(1.1); 
-            z-index: -1; 
-            transition: background-image 0.5s ease-in-out;
-        }
-
-        /* --- CONTENEDOR PRINCIPAL (RESPONSIVE) --- */
+        /* --- CONTENEDOR PRINCIPAL --- */
         #player-container {
             width: 90%;
-            max-width: 600px; 
-            padding: 30px 20px;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-            z-index: 1; 
+            max-width: 500px; /* Reducido para enfoque */
+            padding: 30px;
             border-radius: 15px;
-            background-color: rgba(0, 0, 0, 0.4); 
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+            background-color: rgba(255, 255, 255, 0.05); /* Fondo semitransparente */
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
         }
         
-        /* --- BLOQUE VISUAL (Carátula y Espectro) - CORRECCIÓN ANTI-OVALADO --- */
-        #visual-block {
-            position: relative;
-            /* El tamaño base ahora es fijo para PC */
-            width: 400px; 
-            height: 400px; 
-            
-            /* Usamos vmin para asegurar que no se desborde ni se deforme en modo escritorio de móvil */
-            max-width: 80vmin; 
-            max-height: 80vmin; 
-            
-            margin-bottom: 30px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        /* --- ESPECTRO CANVAS (Barras Circulares) --- */
-        #audio-visualizer-canvas {
-            position: absolute;
-            top: 0; 
-            left: 0;
-            /* El canvas debe ser cuadrado para que el espectro circular funcione */
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 1; 
-        }
-
-        /* --- CARÁTULA REDONDA Y CENTRAL --- */
+        /* --- CARÁTULA --- */
         #caratula-container {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 70%; 
-            height: 70%; 
+            width: 250px;
+            height: 250px;
+            margin: 0 auto 25px auto;
             overflow: hidden;
-            border-radius: 50%; 
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); 
-            background-color: #000;
-            z-index: 2; 
+            border-radius: 10px; /* Cuadrado con bordes redondeados */
+            box-shadow: 0 0 15px rgba(255, 0, 127, 0.5);
         }
         #caratula-img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transition: transform 0.5s ease;
         }
 
         /* --- INFO DE LA CANCIÓN --- */
-        #text-info {
-            text-align: center;
-            width: 100%;
-            margin-bottom: 25px;
-        }
         #online-text {
-            color: var(--text-light); 
+            color: var(--color-accent); 
             font-size: 14px;
             font-weight: bold;
             margin-bottom: 5px;
         }
         #artista-display {
-            font-size: 16px; 
+            font-size: 18px; 
             color: var(--text-faded);
             margin-bottom: 5px;
         }
         #cancion-display {
-            font-size: 24px; 
+            font-size: 28px; 
             font-weight: 700;
             color: var(--text-light);
             line-height: 1.2;
             word-wrap: break-word;
+            margin-bottom: 20px;
         }
         
         /* --- CONTROLES Y VOLUMEN --- */
         #controles-volumen {
             display: flex;
             align-items: center;
-            justify-content: center; 
+            justify-content: space-between; 
             width: 100%;
-            max-width: 450px;
-            margin-bottom: 30px;
-            position: relative;
-            min-height: 80px; 
+            max-width: 400px;
+            margin: 0 auto;
         }
-        
-        /* Contenedor central de los botones */
+
+        /* Contenedor central de los botones Play/Stop */
         #botones-accion {
             display: flex;
             justify-content: center;
             align-items: center;
-            position: relative;
-            z-index: 3; 
         }
 
-        /* --- ESTILO BASE DEL BOTÓN PRINCIPAL (APLICADO A PLAY Y STOP) --- */
+        /* --- ESTILO BASE DEL BOTÓN PRINCIPAL (PLAY/STOP) --- */
         #btn-play, #btn-stop {
-            background-color: var(--color-neon-accent);
+            background-color: var(--color-accent);
             color: #fff;
-            border: 4px solid #fff; 
-            width: 70px; 
-            height: 70px;
+            border: none;
+            width: 60px; 
+            height: 60px;
             border-radius: 50%; 
             cursor: pointer;
-            font-size: 30px;
+            font-size: 25px;
             display: flex;
             justify-content: center;
             align-items: center;
-            box-shadow: 0 0 15px var(--color-neon-accent), 0 0 30px rgba(255, 255, 255, 0.5) inset;
-            transition: transform 0.2s, background-color 0.2s, box-shadow 0.5s ease-in-out;
-            margin: 0 20px; 
+            box-shadow: 0 0 10px rgba(255, 0, 127, 0.7);
+            transition: transform 0.2s;
             padding: 0;
-            border: none;
-        }
-        #btn-play:hover, #btn-stop:hover {
-            transform: scale(1.05);
-            background-color: #ff3399;
         }
         #btn-play i {
-             margin-left: 3px; /* Ajuste óptico para el icono de play */
+             margin-left: 3px;
         }
-
-
-        /* --- VOLUMEN CONTENEDORES --- */
+        #btn-play:hover, #btn-stop:hover {
+            transform: scale(1.1);
+        }
+        
+        /* --- VOLUMEN CONTENEDOR Y SLIDER --- */
         .volumen-container {
             display: flex;
             align-items: center;
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            z-index: 2; 
+            width: 35%; /* Ocupa el espacio restante */
+            min-width: 120px;
         }
-        #volumen-izq {
-            left: 0;
-            margin-left: 0;
-        }
-        #volumen-der {
-            right: 0;
-            margin-right: 0;
-        }
+        #volumen-izq { justify-content: flex-start; }
+        #volumen-der { justify-content: flex-end; } 
 
-        /* Slider Horizontal */
         #volumen-slider { 
-            width: 100px; 
+            width: 80px; 
             height: 6px;
             background: rgba(255, 255, 255, 0.2); 
             border-radius: 3px;
             cursor: pointer;
             -webkit-appearance: none;
             margin: 0 5px;
-            box-sizing: content-box; 
         }
-        
-        /* Slider Thumb */
         #volumen-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
-            background: var(--color-neon-accent);
+            background: var(--color-accent);
             cursor: pointer;
             border: 2px solid #fff;
-            box-shadow: 0 0 8px rgba(255, 0, 127, 0.8);
+        }
+        #volume-icon {
+            font-size: 16px; 
+            color: var(--color-accent); 
         }
 
-        #volumen-slider::-moz-range-thumb {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: var(--color-neon-accent);
-            cursor: pointer;
-            border: 2px solid #fff;
-            box-shadow: 0 0 8px rgba(255, 0, 127, 0.8);
-        }
-
-        /* --- ÁREA DE LETRAS (CC SIMULADO) --- */
-        #lyrics-section {
-            width: 100%;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: center;
-        }
-        #lyrics-title {
-            font-size: 20px;
-            color: var(--color-neon-accent); 
-            font-weight: 700;
-            text-shadow: 0 0 8px rgba(255, 0, 127, 0.7);
-        }
-        
-        /* --- BOTÓN DE TOGGLE DE LYRICS --- */
-        #btn-toggle-lyrics {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-light);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: all 0.3s;
-            margin-top: 15px;
-            margin-bottom: 15px;
-            display: inline-flex;
-            align-items: center;
-        }
-        #btn-toggle-lyrics:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-        #btn-toggle-lyrics i {
-            margin-left: 10px;
-            transition: transform 0.3s;
-        }
-        #lyrics-section.open #btn-toggle-lyrics i {
-            transform: rotate(180deg);
-        }
-
-        /* --- CONTENEDOR DE LYRICS (OCULTABLE) --- */
-        #lyrics-content-wrapper {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.5s ease-in-out, opacity 0.5s;
-            opacity: 0;
-            width: 100%;
-        }
-
-        /* ESTADO ABIERTO */
-        #lyrics-section.open #lyrics-content-wrapper {
-            max-height: 500px; 
-            opacity: 1;
-        }
-
-        /* Área de visualización de letras */
-        #lyrics-area {
-            list-style: none; 
-            padding: 10px 15px; 
-            margin: 0;
-            height: 200px; 
-            overflow: hidden; 
-            background-color: rgba(255, 255, 255, 0.1); 
-            backdrop-filter: blur(10px); 
-            -webkit-backdrop-filter: blur(10px);
-            border-radius: 8px;
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.2); 
-            text-align: center;
-            transition: transform 0.3s ease-out; /* Para el efecto de scroll */
-        }
-        
-        /* Estilos de línea de letra */
-        .lyric-line {
-            padding: 5px 0;
-            transition: all 0.3s ease-out;
-            color: var(--text-faded);
-            font-size: 16px;
-        }
-
-        .lyric-line.active {
-            color: var(--color-neon-accent);
-            font-weight: 700;
-            font-size: 18px;
-            text-shadow: 0 0 5px rgba(255, 0, 127, 0.7);
-        }
-        
-        /* Estilo para las líneas que se desvanecen (por encima de la vista) */
-        .lyric-line.fade-out {
-            opacity: 0.6;
-            transform: scale(0.95);
-        }
-
-        /* Media Query para pantallas grandes (PC, TV) */
-        @media (min-width: 800px) {
-            #player-container {
-                max-width: 700px; /* Mayor espacio horizontal */
-            }
-            #cancion-display {
-                font-size: 32px;
-            }
-            .volumen-container {
-                 width: 180px; 
-            }
-            #volumen-slider {
-                width: 150px;
-            }
-            #lyrics-area {
-                height: 260px; 
-            }
-        }
-        
-        /* Media Query para móvil vertical (9:16) */
+        /* Media Query para móvil vertical */
         @media (max-width: 600px) {
             #player-container {
                 padding: 20px 10px;
             }
-            /* En móvil, usamos vw para que ocupe casi todo el ancho disponible */
-            #visual-block {
-                width: 90vw;
-                height: 90vw;
-                max-width: 350px;
-                max-height: 350px;
+            #caratula-container {
+                width: 200px;
+                height: 200px;
             }
             #cancion-display {
-                font-size: 20px;
+                font-size: 22px;
             }
-            /* Ocultamos el slider de volumen lateral para dar más espacio a los botones */
             .volumen-container {
+                /* Ocultamos el slider en móvil para simplificar la interfaz */
                 display: none;
             }
         }
@@ -378,16 +172,10 @@
 </head>
 <body>
 
-    <div id="background-blur"></div>
-
     <div id="player-container">
         
-        <div id="visual-block">
-            <canvas id="audio-visualizer-canvas" width="400" height="400"></canvas>
-            
-            <div id="caratula-container">
-                <img id="caratula-img" src="https://zeno.fm/_ipx/_/https://images.zeno.fm/LGol9lXeVJlVfO1bhAvAiJ7s3yl7nAUcaVsaDi1u-hw/rs:fill:288:288/g:ce:0:0/aHR0cHM6Ly9wcm94eS56ZW5vLmZtL2NvbnRlbnQvc3RhdGlvbnMvMTllOWM2NDktODNmZS00ZDA1LWEwNGYtY2Y5NThiNDEzMTlhL2ltYWdlLz91PTE3MzE5ODYxMzgwMDA.webp" alt="Logo de Heart Love FM" />
-            </div>
+        <div id="caratula-container">
+            <img id="caratula-img" src="https://zeno.fm/_ipx/_/https://images.zeno.fm/LGol9lXeVJlVfO1bhAvAiJ7s3yl7nAUcaVf-hw/rs:fill:288:288/g:ce:0:0/aHR0cHM6Ly9wcm94eS56ZW5vLmZtL2NvbnRlbnQvc3RhdGlvbnMvMTllOWM2NDktODNmZS00ZDA1LWEwNGYtY2Y5NThiNDEzMTlhL2ltYWdlLz91PTE3MzE5ODYxMzgwMDA.webp" alt="Logo de Heart Love FM" />
         </div>
         
         <div id="text-info">
@@ -397,37 +185,22 @@
         </div>
         
         <div id="controles-volumen">
+            
             <div id="volumen-izq" class="volumen-container">
-                <i id="volume-icon" class="fa-solid fa-volume-low" style="font-size: 18px; color: var(--color-neon-accent); transition: transform 0.3s ease-out;"></i>
+                <i id="volume-icon" class="fa-solid fa-volume-low"></i>
                 <input type="range" id="volumen-slider" min="0" max="1" step="0.01" value="0.5">
             </div>
             
             <div id="botones-accion">
                 <button id="btn-stop" style="display: none;">
-                    <i class="fa-solid fa-stop fa-fade"></i>
+                    <i class="fa-solid fa-stop"></i>
                 </button>
                 <button id="btn-play">
-                    <i class="fa-solid fa-play fa-fade"></i>
+                    <i class="fa-solid fa-play"></i>
                 </button>
             </div>
+            
             <div id="volumen-der" class="volumen-container"></div>
-        </div>
-        
-        <div id="lyrics-section">
-            <div id="lyrics-title">LYRICS</div>
-            
-            <button id="btn-toggle-lyrics">
-                Mostrar Lyrics <i class="fa-solid fa-chevron-down"></i>
-            </button>
-            
-            <div id="lyrics-content-wrapper">
-                 <ol id="lyrics-area">
-                    <li class="lyric-line fade-out">Las letras de la canción aparecerán aquí</li>
-                    <li class="lyric-line fade-out">con un efecto de resaltado de línea</li>
-                    <li class="lyric-line fade-out">para simular la sincronización (CC).</li>
-                    <li class="lyric-line fade-out">Dale Play para iniciar.</li>
-                </ol>
-            </div>
         </div>
 
     </div>
@@ -438,442 +211,82 @@
         document.addEventListener('DOMContentLoaded', () => {
             // *** CONFIGURACIÓN CLAVE ***
             const METADATA_PROXY_URL = 'https://api.zeno.fm/mounts/metadata/subscribe/cr8evht2huruv'; 
-            
             const LASTFM_API_KEY = '217df5ef951f0b3813906b25c5cb5448'; 
             const ALBUM_ART_PROXY_URL = 'https://images.weserv.nl/?url='; 
-            const LYRICS_API_URL_BASE = 'https://api.lyrics.ovh/'; 
-            const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/'; 
             
-            // CONFIGURACIÓN DEL ESPECTRO DE BARRAS (Canvas)
-            const BAR_COUNT = 128; 
-            const CANVAS_SIZE = 350; 
-            const MIN_RADIUS = 125; 
-            const MAX_EXTEND_OUT = 60; 
-            const MAX_EXTEND_IN = 10; 
-            const BAR_WIDTH = 2; 
-            const ROTATION_SPEED = 0.0005; 
-            
-            // PALETA DE COLORES NEÓN TEMÁTICA
-            const NEON_COLOR_PALETTE = [
-                '255, 0, 127', '255, 255, 0', '255, 102, 0', '127, 0, 255'    
-            ];
-            let currentSpectrumColor = NEON_COLOR_PALETTE[0]; 
-            let currentColorIndex = 0; 
-            
-            const defaultArt = 'https://zeno.fm/_ipx/_/https://images.zeno.fm/LGol9lXeVJlVfO1bhAvAiJ7s3yl7nAUcaVsaDi1u-hw/rs:fill:288:288/g:ce:0:0/aHR0cHM6Ly9wcm94eS56ZW5vLmZtL2NvbnRlbnQvc3RhdGlvbnMvMTllOWM2NDktODNmZS00ZDA1LWEwNGYtY2Y5NThiNDEzMTlhL2ltYWdlLz91PTE3MzE5ODYxMzgwMDA.webp'; 
+            const defaultArt = 'https://zeno.fm/_ipx/_/https://images.zeno.fm/LGol9lXeVJlVfO1bhAvAiJ7s3yl7nAUcaVf-hw/rs:fill:288:288/g:ce:0:0/aHR0cHM6Ly9wcm94eS56ZW5vLmZtL2NvbnRlbnQvc3RhdGlvbnMvMTllOWM2NDktODNmZS00ZDA1LWEwNGYtY2Y5NThiNDEzMTlhL2ltYWdlLz91PTE3MzE5ODYxMzgwMDA.webp'; 
+            const ACCENT_COLOR_RGB = '255, 0, 127'; 
             // --------------------------------
 
             // --- REFERENCIAS DE ELEMENTOS ---
             const radio = document.getElementById('radio-stream');
-            // ** CAMBIO: Referencias a botones separados **
             const btnPlay = document.getElementById('btn-play'); 
             const btnStop = document.getElementById('btn-stop'); 
-            // ** FIN CAMBIO **
             
             const controlVolumen = document.getElementById('volumen-slider'); 
             const volumeIcon = document.getElementById('volume-icon'); 
             
             const onlineText = document.getElementById('online-text');
-            const backgroundBlur = document.getElementById('background-blur'); 
-            
-            const canvas = document.getElementById('audio-visualizer-canvas');
-            const ctx = canvas.getContext('2d');
-            
             const artistaDisplay = document.getElementById('artista-display');
             const cancionDisplay = document.getElementById('cancion-display');
             const caratulaImg = document.getElementById('caratula-img'); 
-            const lyricsArea = document.getElementById('lyrics-area');
-            
-            const lyricsSection = document.getElementById('lyrics-section'); 
-            const btnToggleLyrics = document.getElementById('btn-toggle-lyrics'); 
 
             let isPlaying = false;
             let eventSource = null; 
             let lastSong = ''; 
 
-            let audioContext = null;
-            let analyser = null;
-            let source = null;
-            let frequencyData = null;
-            let animationFrameId = null; 
             
-            let rotationAngle = 0; 
-            let isRotating = false; 
-            
-            let audioInitialized = false; 
-            
-            // --- LÓGICA DE LYRICS CON AUTO-SCROLL/RESALTADO (CC SIMULADO) ---
-            let lyricsLines = [];
-            let currentLineIndex = 0;
-            let lyricsIntervalId = null;
-            const LINES_PER_PAGE = 8; 
-            let scrollIntervalTime = 0; 
-            
-            // --- LÓGICA DE TOGGLE ---
-            btnToggleLyrics.addEventListener('click', () => {
-                const isOpen = lyricsSection.classList.toggle('open');
-                const icon = btnToggleLyrics.querySelector('i');
-                
-                if (isOpen) {
-                    btnToggleLyrics.firstChild.textContent = 'Ocultar Lyrics ';
-                    if (isPlaying && lyricsLines.length > LINES_PER_PAGE && !lyricsIntervalId) {
-                         resumeLyricsAutoScroll(); 
-                    }
-                } else {
-                    btnToggleLyrics.firstChild.textContent = 'Mostrar Lyrics ';
-                    if (lyricsIntervalId) {
-                         stopLyricsAutoScroll();
-                    }
-                }
-            });
-
-            function stopLyricsAutoScroll() {
-                 if (lyricsIntervalId) {
-                    clearInterval(lyricsIntervalId);
-                    lyricsIntervalId = null;
-                 }
-                 const linesInView = lyricsArea.querySelectorAll('.lyric-line');
-                 if (linesInView.length > 0 && linesInView[0].classList.contains('active')) {
-                     linesInView[0].className = 'lyric-line fade-out'; 
-                 }
-            }
-
-
-            function renderLyrics() {
-                lyricsArea.innerHTML = '';
-                const linesToRender = lyricsLines.slice(0, LINES_PER_PAGE); 
-                
-                linesToRender.forEach((line) => {
-                    const li = document.createElement('li');
-                    li.className = 'lyric-line fade-out';
-                    li.textContent = line;
-                    lyricsArea.appendChild(li);
-                });
-
-                if (lyricsLines.length === 0) {
-                     lyricsArea.innerHTML = '<li class="lyric-line fade-out">Buscando letras...</li>';
-                }
-            }
-
-            function resetLyricsAutoScroll() {
-                stopLyricsAutoScroll(); 
-                currentLineIndex = 0;
-                scrollIntervalTime = 0;
-                
-                const lines = lyricsArea.querySelectorAll('.lyric-line');
-                lines.forEach(line => line.className = 'lyric-line fade-out');
-                lyricsArea.style.transform = 'translateY(0)'; 
-            }
-            
-            function resumeLyricsAutoScroll() {
-                if (!lyricsIntervalId && isPlaying && lyricsSection.classList.contains('open') && lyricsLines.length > LINES_PER_PAGE && scrollIntervalTime > 0) {
-                    
-                    const linesInView = lyricsArea.querySelectorAll('.lyric-line');
-                    if (linesInView.length > 0) {
-                         linesInView[0].className = 'lyric-line active';
-                         for (let i = 1; i < linesInView.length; i++) {
-                             linesInView[i].className = 'lyric-line fade-out';
-                         }
-                    }
-
-                    lyricsIntervalId = setInterval(displayCurrentLyricsSegment, scrollIntervalTime);
-                }
-            }
-            
-            function displayCurrentLyricsSegment(isInitialRun = false) {
-                const linesInView = lyricsArea.querySelectorAll('.lyric-line');
-                if (linesInView.length === 0 && lyricsLines.length > 0) {
-                    renderLyrics();
-                    return;
-                }
-                
-                if (isInitialRun) {
-                    linesInView.forEach((line, index) => {
-                        line.className = index === 0 ? 'lyric-line active' : 'lyric-line fade-out';
-                    });
-                    return;
-                }
-
-                const oldActiveLine = linesInView[0];
-                const nextActiveLine = linesInView[1];
-                
-                if (oldActiveLine) {
-                    oldActiveLine.className = 'lyric-line fade-out'; 
-                    if(nextActiveLine) {
-                        nextActiveLine.className = 'lyric-line active';
-                    }
-                    
-                    const lineHeight = oldActiveLine.offsetHeight + parseInt(window.getComputedStyle(oldActiveLine).marginBottom);
-                    lyricsArea.style.transform = `translateY(-${lineHeight}px)`;
-                } else {
-                    startLyricsAutoScroll(lyricsLines.join('\n'));
-                    return;
-                }
-
-                setTimeout(() => {
-                    if (currentLineIndex < lyricsLines.length) {
-                        const newLine = document.createElement('li');
-                        newLine.className = 'lyric-line fade-out';
-                        newLine.textContent = lyricsLines[currentLineIndex];
-                        lyricsArea.appendChild(newLine);
-                        
-                        if (lyricsArea.firstChild) {
-                             lyricsArea.removeChild(lyricsArea.firstChild);
-                        }
-                        lyricsArea.style.transform = 'translateY(0)'; 
-                        
-                        currentLineIndex++;
-                        
-                    } else {
-                        startLyricsAutoScroll(lyricsLines.join('\n'));
-                    }
-
-                }, 350); 
-            }
-
-            function startLyricsAutoScroll(lyricsText, isResuming = false) {
-                if (isResuming) {
-                    resumeLyricsAutoScroll();
-                    return;
-                }
-
-                if (typeof lyricsText === 'string') {
-                   lyricsLines = lyricsText.split('\n').filter(line => line.trim() !== '');
-                }
-                
-                resetLyricsAutoScroll(); 
-                
-                currentLineIndex = LINES_PER_PAGE; 
-                
-                if (lyricsLines.length > LINES_PER_PAGE) {
-                    
-                    renderLyrics(); 
-                    
-                    const estimatedSongDurationSec = 210; 
-                    const scrollCount = Math.ceil(lyricsLines.length / 2); 
-                    const dynamicInterval = Math.round(estimatedSongDurationSec / scrollCount) * 1000;
-                    const finalInterval = Math.max(3000, Math.min(12000, dynamicInterval)); 
-                    scrollIntervalTime = finalInterval; 
-                    
-                    const INITIAL_DELAY = 5000; 
-                    
-                    if (isPlaying && lyricsSection.classList.contains('open')) {
-                        setTimeout(() => {
-                            displayCurrentLyricsSegment(true); 
-                            lyricsIntervalId = setInterval(displayCurrentLyricsSegment, scrollIntervalTime);
-                        }, INITIAL_DELAY); 
-                    }
-
-                } else {
-                    lyricsArea.innerHTML = lyricsLines.map(line => `<li class="lyric-line">${line}</li>`).join('');
-                }
-            }
-
-
-            // --- FUNCIONES PRINCIPALES DE CONTROL ---
+            // --- FUNCIONES DE CONTROL ---
             
             function updateStatus(message) {
-                const accentColor = `rgb(${currentSpectrumColor})`;
+                const accentColor = `rgb(${ACCENT_COLOR_RGB})`;
                 
-                const currentButton = isPlaying ? btnStop : btnPlay;
-                
-                // Aplicar sombras al botón visible
-                currentButton.style.boxShadow = `0 0 15px ${accentColor}, 0 0 30px rgba(255, 255, 255, 0.5) inset`;
-                currentButton.style.borderColor = `rgb(${currentSpectrumColor.split(',').map(c => Math.min(255, parseInt(c.trim()) + 50)).join(',')})`; 
-                
+                // Aplicar sombra al botón visible (solo el que no es loading)
+                if (message !== 'CONECTANDO') {
+                    const currentButton = isPlaying ? btnStop : btnPlay;
+                    currentButton.style.boxShadow = `0 0 15px rgba(${ACCENT_COLOR_RGB}, 0.8)`;
+                }
+
                 onlineText.innerHTML = `• <span style="color:${accentColor};">${message.toUpperCase()}</span>`;
-                onlineText.style.textShadow = `0 0 8px rgba(${accentColor}, 0.7)`;
 
                 if (message.includes('PAUSA') || message.includes('OFFLINE') || message.includes('MUTE') || message.includes('Bloqueo')) {
                     onlineText.innerHTML = `• <span style="color:#888888;">${message.toUpperCase()}</span>`;
-                    onlineText.style.textShadow = 'none';
                     btnPlay.style.boxShadow = '0 0 10px rgba(255, 0, 127, 0.8)';
-                    btnPlay.style.borderColor = '#fff';
                 }
                 if (message.includes('CONECTANDO') || message.includes('Error')) {
                     onlineText.innerHTML = `• <span style="color:orange;">${message.toUpperCase()}</span>`;
-                    onlineText.style.textShadow = `0 0 8px rgba(255, 165, 0, 0.7)`;
                 }
             }
             
-            // ** FUNCIÓN initializeAudio() - Intentar siempre inicializar espectro **
-            function initializeAudio() {
-                if (audioInitialized) return; 
-                
-                try {
-                    // Crear el AudioContext si no existe
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    
-                    // Analizador
-                    analyser = audioContext.createAnalyser();
-                    analyser.fftSize = 512; 
-                    analyser.minDecibels = -90;
-                    analyser.maxDecibels = -10;
-                    
-                    // Conexión del grafo de audio
-                    source = audioContext.createMediaElementSource(radio);
-                    source.connect(analyser);
-                    analyser.connect(audioContext.destination);
-                    
-                    frequencyData = new Uint8Array(analyser.frequencyBinCount);
-                    console.log("AudioContext y grafo inicializado.");
-                    
-                } catch (e) {
-                    console.error("Fallo al inicializar AudioContext (Puede ser normal en navegadores estrictos):", e);
-                    audioContext = null;
-                    analyser = null;
-                    source = null;
-                }
-                
-                audioInitialized = true;
-            }
-            
-            function drawSpectrum() {
-                // Solo dibuja si el analizador fue creado con éxito
-                if (!isPlaying || radio.paused || radio.volume === 0 || !analyser) {
-                    if (animationFrameId) {
-                        cancelAnimationFrame(animationFrameId);
-                        animationFrameId = null;
-                    }
-                    ctx.clearRect(0, 0, canvas.width, canvas.height); 
-                    return;
-                }
-                
-                // Si el contexto existe pero está suspendido, no dibujamos.
-                if (audioContext && audioContext.state === 'suspended' && audioInitialized) {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height); 
-                    animationFrameId = requestAnimationFrame(drawSpectrum);
-                    return;
-                }
-
-                analyser.getByteFrequencyData(frequencyData);
-                ctx.clearRect(0, 0, canvas.width, canvas.height); 
-                
-                ctx.save(); 
-                
-                if (isRotating) {
-                    rotationAngle += ROTATION_SPEED;
-                    // Los cálculos usan CANVAS_SIZE (350) para la lógica central
-                    ctx.translate(canvas.width / 2, canvas.height / 2);
-                    ctx.rotate(rotationAngle);
-                    ctx.translate(-canvas.width / 2, -canvas.height / 2);
-                }
-                
-                ctx.shadowColor = `rgba(${currentSpectrumColor}, 0.9)`; 
-                ctx.shadowBlur = 18; 
-                ctx.lineWidth = BAR_WIDTH; 
-
-                const bufferLength = analyser.frequencyBinCount;
-                const dataRange = Math.floor(bufferLength * 0.75); 
-
-                const normalizedAudioValues = [];
-                for (let i = 0; i < dataRange; i++) {
-                    let v = frequencyData[i] / 255;
-                    v = v * v * 0.7 + 0.1; 
-                    normalizedAudioValues.push(v);
-                }
-
-                const quadrantSize = BAR_COUNT / 4;
-                const audioDataHalf = Math.floor(dataRange / 2); 
-                
-                const currentCenterX = canvas.width / 2;
-                const currentCenterY = canvas.height / 2;
-
-                for (let i = 0; i < BAR_COUNT; i++) {
-                    let v;
-                    let dataIndex;
-
-                    if (i < quadrantSize) { 
-                        dataIndex = Math.floor((i / quadrantSize) * audioDataHalf);
-                    } else if (i < 2 * quadrantSize) { 
-                        dataIndex = Math.floor(((2 * quadrantSize - 1 - i) / quadrantSize) * audioDataHalf);
-                    } else if (i < 3 * quadrantSize) { 
-                        dataIndex = Math.floor(((i - 2 * quadrantSize) / quadrantSize) * audioDataHalf);
-                    } else { 
-                        dataIndex = Math.floor(((4 * quadrantSize - 1 - i) / quadrantSize) * audioDataHalf);
-                    }
-                    
-                    dataIndex = Math.min(dataIndex, normalizedAudioValues.length - 1);
-                    v = normalizedAudioValues[dataIndex];
-
-                    let extendOut = v * MAX_EXTEND_OUT * (canvas.width / CANVAS_SIZE); 
-                    let extendIn = v * MAX_EXTEND_IN * (canvas.width / CANVAS_SIZE); 
-                    let currentMinRadius = MIN_RADIUS * (canvas.width / CANVAS_SIZE); 
-
-                    const angle = (i / BAR_COUNT) * 2 * Math.PI; 
-                    
-                    const startX = currentCenterX + (currentMinRadius - extendIn) * Math.cos(angle);
-                    const startY = currentCenterY + (currentMinRadius - extendIn) * Math.sin(angle);
-                    const endX = currentCenterX + (currentMinRadius + extendOut) * Math.cos(angle);
-                    const endY = currentCenterY + (currentMinRadius + extendOut) * Math.sin(angle);
-
-                    ctx.strokeStyle = `rgba(${currentSpectrumColor}, ${0.5 + v * 0.5})`; 
-                    
-                    ctx.beginPath();
-                    ctx.moveTo(startX, startY);
-                    ctx.lineTo(endX, endY);
-                    ctx.stroke();
-                }
-                
-                ctx.restore(); 
-
-                animationFrameId = requestAnimationFrame(drawSpectrum);
-            }
-            
-            // ** FUNCIÓN updateIcon MODIFICADA PARA BOTONES SEPARADOS **
             function updateIcon(iconState) {
                 // Ocultar Stop y mostrar Play/Loading
                 if (iconState === 'loading' || iconState === 'play') {
                     btnPlay.style.display = 'flex';
                     btnStop.style.display = 'none';
-                    const iconClass = (iconState === 'loading') ? 'fa-solid fa-arrows-rotate fa-fade' : 'fa-solid fa-play fa-fade';
+                    const iconClass = (iconState === 'loading') ? 'fa-solid fa-arrows-rotate fa-spin' : 'fa-solid fa-play'; // Eliminamos fa-fade
                     btnPlay.querySelector('i').className = iconClass;
 
                 // Ocultar Play y mostrar Stop
                 } else if (iconState === 'pause' || iconState === 'stop') {
                      btnPlay.style.display = 'none';
                      btnStop.style.display = 'flex';
-                     btnStop.querySelector('i').className = 'fa-solid fa-stop fa-fade';
+                     btnStop.querySelector('i').className = 'fa-solid fa-stop';
                 }
             }
             
-            // ** FUNCIÓN playRadio() - SIN COMPROBACIÓN DE ESTADO INTERNO **
+            // ** FUNCIÓN playRadio() **
             async function playRadio() {
                 
                 updateStatus('CONECTANDO');
                 updateIcon('loading'); 
                 
-                // 1. Inicializar AudioContext (Espectro)
-                initializeAudio(); 
-                
-                // 2. Intentar desbloquear AudioContext (si es necesario)
-                if (audioContext && audioContext.state === 'suspended') {
-                    try {
-                        await audioContext.resume();
-                    } catch(e) {
-                        console.warn("AudioContext no se pudo reanudar.");
-                    }
-                }
-                
-                // 3. Llamar a play() inmediatamente
+                // 1. Llamar a play() inmediatamente
                 radio.play().then(() => {
                     // ÉXITO
                     isPlaying = true;
                     updateIcon('pause'); // Muestra el botón de Stop
                     updateStatus('ONLINE'); 
                     startSSEListener(); 
-                    isRotating = true; 
-                    
-                    if (analyser) {
-                        requestAnimationFrame(drawSpectrum); 
-                    }
-                    
-                    // Lógica de Lyrics
-                    if (lastSong && lyricsLines.length === 0) {
-                         fetchLyrics(artistaDisplay.textContent, cancionDisplay.textContent);
-                    } else if (lyricsLines.length > LINES_PER_PAGE && scrollIntervalTime > 0) {
-                         resumeLyricsAutoScroll(); 
-                    }
 
                 }).catch(error => {
                     console.error(`Error al reproducir el stream:`, error);
@@ -881,16 +294,16 @@
                     updateStatus('OFFLINE (Bloqueo)');
                     updateIcon('play'); // Muestra el botón de Play
                     
-                    alert('La radio no se pudo iniciar. Intente de nuevo.');
+                    alert('La radio no se pudo iniciar. Intente de nuevo o revise la configuración de su TV.');
                 });
             }
             
-            // ** FUNCIÓN stopRadio() - SIN COMPROBACIÓN DE ESTADO INTERNO **
+            // ** FUNCIÓN stopRadio() **
             function stopRadio() {
                 
                 radio.pause();
                 
-                // LÓGICA DE RECARGA: Forzar la desconexión y reconexión del stream para el siguiente PLAY
+                // LÓGICA DE RECARGA: Para asegurar que se reconecta correctamente
                 const currentSrc = radio.src;
                 radio.src = ''; 
                 radio.load();
@@ -902,99 +315,43 @@
                 isPlaying = false;
                 updateIcon('play'); // Muestra el botón de Play
                 updateStatus('PAUSA');
-                
-                isRotating = false; 
-                drawSpectrum(); 
-                
-                stopLyricsAutoScroll();
             }
 
-            // ** CAMBIO: Nuevos Event Listeners **
             btnPlay.addEventListener('click', playRadio);
             btnStop.addEventListener('click', stopRadio);
-            // ** FIN CAMBIO **
             
+            // --- LÓGICA DE VOLUMEN ---
             function syncVolume(slider) {
                 radio.volume = parseFloat(slider.value);
                 const volumePercentage = radio.volume * 100;
+                const accentColor = `rgb(${ACCENT_COLOR_RGB})`; 
                 
-                const neonColor = `rgb(${currentSpectrumColor})`; 
-                const trackBackground = `linear-gradient(to right, ${neonColor} 0%, ${neonColor} ${volumePercentage}%, rgba(255, 255, 255, 0.2) ${volumePercentage}%, rgba(255, 255, 255, 0.2) 100%)`;
+                // Estilo del Slider
+                const trackBackground = `linear-gradient(to right, ${accentColor} 0%, ${accentColor} ${volumePercentage}%, rgba(255, 255, 255, 0.2) ${volumePercentage}%, rgba(255, 255, 255, 0.2) 100%)`;
                 slider.style.background = trackBackground;
 
-                const iconMap = {
-                    high: 'fa-volume-high',
-                    low: 'fa-volume-low',
-                    mute: 'fa-volume-off'
-                };
-                let iconClass = iconMap.high;
+                // Icono
+                let iconClass = 'fa-volume-high';
 
                 if (radio.volume === 0) {
-                    iconClass = iconMap.mute;
+                    iconClass = 'fa-volume-off';
                 } else if (radio.volume < 0.5) {
-                    iconClass = iconMap.low;
+                    iconClass = 'fa-volume-low';
                 }
                 
                 volumeIcon.className = `fa-solid ${iconClass}`;
-                volumeIcon.style.color = neonColor;
-                
-                const maxMovement = 20; 
-                let iconShift = 0;
-                
-                if (radio.volume > 0) {
-                    iconShift = (1 - radio.volume) * maxMovement * 0.8;
-                }
-                volumeIcon.style.transform = `translateX(-${iconShift}px)`;
-
 
                 if (isPlaying && radio.volume === 0) {
                     updateStatus('MUTE');
-                } else if (isPlaying && (onlineText.textContent.includes('MUTE') || onlineText.textContent.includes('PAUSA') || onlineText.textContent.includes('Bloqueo'))) { 
+                } else if (isPlaying && onlineText.textContent.includes('MUTE')) { 
                     updateStatus('ONLINE'); 
                 }
             }
             
             controlVolumen.addEventListener('input', (event) => syncVolume(event.target));
             
-            function updateBackground(imageUrl) {
-                if (imageUrl && imageUrl !== defaultArt) {
-                    backgroundBlur.style.backgroundImage = `url(${imageUrl})`;
-                    backgroundBlur.style.transition = 'background-image 1s ease-in-out';
-                } else {
-                    backgroundBlur.style.backgroundImage = `url(${defaultArt})`; 
-                    backgroundBlur.style.transition = 'none';
-                }
-            }
             
-            
-            function fetchLyrics(artist, song) { 
-                lyricsLines = []; 
-                resetLyricsAutoScroll();
-                lyricsArea.innerHTML = '<li class="lyric-line fade-out">Buscando letras...</li>';
-
-                if (artist.includes('HEART LOVE') || song.includes('SINTONIZANDO')) {
-                     lyricsArea.innerHTML = '<li class="lyric-line fade-out">Las letras aparecerán cuando se identifique la canción.</li>';
-                     return;
-                }
-                const apiPath = `v1/${encodeURIComponent(artist)}/${encodeURIComponent(song)}`;
-                const proxiedUrl = CORS_PROXY + LYRICS_API_URL_BASE + apiPath;
-                fetch(proxiedUrl)
-                    .then(response => {
-                        if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.lyrics) {
-                            startLyricsAutoScroll(data.lyrics);
-                        } else {
-                            lyricsArea.innerHTML = `<li class="lyric-line fade-out">[NO ENCONTRADO] Letra para: ${song}.</li>`;
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error al buscar letras:', error);
-                        lyricsArea.innerHTML = '<li class="lyric-line fade-out">[ERROR] Falló la búsqueda de letras.</li>';
-                    });
-            }
+            // --- LÓGICA DE METADATOS Y CARÁTULA (Last.fm) ---
             
             function fetchAlbumArtFallback(artist) { 
                  const fallbackUrl = `https://ws.audioscrobbler.com/2.0/?method=artist.gettopalbums&api_key=${LASTFM_API_KEY}&artist=${encodeURIComponent(artist)}&limit=1&format=json`;
@@ -1014,22 +371,18 @@
                          } else {
                              caratulaImg.src = imageUrl;
                          }
-                         updateBackground(imageUrl); 
                      })
                      .catch(error => {
                          console.error('Error en Intento 2 (Artist Top Album):', error);
                          caratulaImg.src = defaultArt; 
-                         updateBackground(defaultArt); 
                      });
             }
             
             function fetchAlbumArt(artist, song) { 
-                caratulaImg.src = 'https://i.imgur.com/l83Qn0I.gif'; 
-                updateBackground(''); 
+                caratulaImg.src = defaultArt; 
                 
                 if (!artist || !song || artist.includes('HEART LOVE') || song.includes('SINTONIZANDO...')) {
                     caratulaImg.src = defaultArt;
-                    updateBackground(defaultArt); 
                     return;
                 }
                 
@@ -1054,7 +407,6 @@
 
                         if (imageUrl && !imageUrl.includes('2a96cbd8b46e442fc41c2b86b821562f')) {
                             caratulaImg.src = imageUrl;
-                            updateBackground(imageUrl); 
                         } else {
                             return fetchAlbumArtFallback(artist);
                         }
@@ -1070,14 +422,11 @@
                 eventSource = new EventSource(METADATA_PROXY_URL); 
                 
                 eventSource.onopen = () => {
-                    if (isPlaying) {
-                        isRotating = true;
-                    }
+                    // La conexión está lista
                 };
 
                 eventSource.onerror = () => {
-                    isRotating = false;
-                    console.error('Error en la conexión SSE. Giro detenido.');
+                    console.error('Error en la conexión SSE.');
                     updateStatus('Error de Datos'); 
                 };
 
@@ -1122,23 +471,15 @@
                         updateStatus('ONLINE'); 
 
                         if (searchSong !== lastSong && searchSong !== 'SINTONIZANDO...') {
-                            currentColorIndex = (currentColorIndex + 1) % NEON_COLOR_PALETTE.length; 
-                            currentSpectrumColor = NEON_COLOR_PALETTE[currentColorIndex]; 
                             
-                            rotationAngle = 0; 
-                            isRotating = true; 
+                            // Ya no hay espectro, el color es estático (ACCENT_COLOR_RGB)
                             
                             fetchAlbumArt(searchArtist, searchSong); 
-                            fetchLyrics(searchArtist, searchSong); 
                             lastSong = searchSong;
-                        } else if (searchSong === 'SINTONIZANDO...') {
-                            isRotating = false; 
-                            lastSong = searchSong;
-                        }
+                        } 
 
                     } catch (e) {
                         console.error('Error al procesar metadatos SSE:', e);
-                        isRotating = false; 
                         artistaDisplay.textContent = 'Error de Datos';
                         cancionDisplay.textContent = 'Revisar Consola';
                         updateStatus('Error de Datos'); 
@@ -1150,22 +491,7 @@
             radio.volume = controlVolumen.value;
             syncVolume(controlVolumen); 
             updateStatus('OFFLINE');
-            
-            // ** OBSERVER PARA EL AJUSTE DE CANVAS (ANTI-OVALADO) **
-            const visualBlock = document.getElementById('visual-block');
-            const observer = new ResizeObserver(entries => {
-                for (let entry of entries) {
-                    const width = entry.contentRect.width;
-                    const height = entry.contentRect.height;
-                    // Asegura que las dimensiones del Canvas sean las del contenedor cuadrado
-                    canvas.width = width;
-                    canvas.height = height;
-                }
-            });
-            observer.observe(visualBlock);
-            
-            drawSpectrum();
-            updateBackground(defaultArt); 
+            caratulaImg.src = defaultArt;
         });
     </script>
 </body>

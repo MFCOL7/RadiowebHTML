@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Radio Player - Mute/Unmute FIX</title>
+    <title>Web Radio Player - VEWD Browser FIX</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     
     <style>
-        /* (Se mantienen los estilos CSS) */
+        /* (Estilos CSS idénticos para mantener el diseño) */
         :root {
             --color-accent: #ff007f;
             --main-bg: #121212; 
@@ -183,7 +183,7 @@
 
     </div>
     
-    <audio id="radio-stream" crossorigin="anonymous" muted src="https://stream.zeno.fm/cr8evht2huruv"></audio>
+    <audio id="radio-stream" crossorigin="anonymous" muted preload="none" src="https://stream.zeno.fm/cr8evht2huruv"></audio>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -193,17 +193,19 @@
             const ALBUM_ART_PROXY_URL = 'https://images.weserv.nl/?url='; 
             
             const defaultArt = 'https://zeno.fm/_ipx/_/https://images.zeno.fm/LGol9lXeVJlVfO1bhAvAiJ7s3yl7nAUcaVf-hw/rs:fill:288:288/g:ce:0:0/aHR0cHM6Ly9wcm94eS56ZW5vLmZtL2NvbnRlbnQvc3RhdGlvbnMvMTllOWM2NDktODNmZS00ZDA1LWEwNGYtY2Y5NThiNDEzMTlhL2ltYWdlLz91PTE3MzE5ODYxMzgwMDA.webp'; 
-            const LOADING_GIF = '1000001199.gif'; // El archivo GIF subido
+            // Usamos la imagen subida 1000001199.gif
+            const LOADING_GIF = '1000001199.gif'; 
             const ACCENT_COLOR_RGB = '255, 0, 127'; 
-            const METADATA_LOAD_DELAY_MS = 1000; // Reducido el retraso
             // --------------------------------
 
             // --- REFERENCIAS DE ELEMENTOS ---
             const radio = document.getElementById('radio-stream');
             const btnPlay = document.getElementById('btn-play'); 
             const btnStop = document.getElementById('btn-stop'); 
+            
             const controlVolumen = document.getElementById('volumen-slider'); 
             const volumeIcon = document.getElementById('volume-icon'); 
+            
             const onlineText = document.getElementById('online-text');
             const artistaDisplay = document.getElementById('artista-display');
             const cancionDisplay = document.getElementById('cancion-display');
@@ -212,9 +214,9 @@
             let isPlaying = false;
             let eventSource = null; 
             let lastSong = ''; 
-            let metadataTimeout = null;
 
             // --- FUNCIONES DE INTERFAZ ---
+            
             function updateStatus(message) {
                 const accentColor = `rgb(${ACCENT_COLOR_RGB})`;
                 onlineText.innerHTML = `• <span style="color:${accentColor};">${message.toUpperCase()}</span>`;
@@ -239,7 +241,71 @@
                 }
             }
 
-            // --- CONTROL PRINCIPAL (Mute/Unmute FIX) ---
+            // --- FUNCIÓN DE INICIO DE METADATOS (Solo se llama cuando el audio ya suena) ---
+            function startPlayer() {
+                updateStatus('ONLINE'); 
+                
+                if (eventSource) { eventSource.close(); }
+                eventSource = new EventSource(METADATA_PROXY_URL); 
+                
+                eventSource.onerror = () => {
+                    console.error('Error en la conexión SSE.');
+                    updateStatus('Error de Datos'); 
+                };
+
+                eventSource.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        const streamTitle = data.streamTitle || 'Heart Love FM - Sintonizando...';
+                        
+                        let artistText = 'Heart Love FM'; 
+                        let songText = streamTitle.trim();
+                        const parts = streamTitle.split(" - ");
+
+                        if (parts.length >= 2) {
+                            artistText = parts[0].trim();
+                            songText = parts[1].trim();
+                        }
+                        
+                        // Función de limpieza de texto (se mantiene igual)
+                        function cleanTitle(title) {
+                            title = title.replace(/\([^)]+\)/g, '').trim(); 
+                            title = title.replace(/\[[^\]]+\]/g, '').trim();
+                            title = title.replace(/(\d{4}|REMIX|RADIO EDIT|VERSION|LIVE|UNPLUGGED|FEAT\.|FT\.|MIX|ORIGINAL|RADIO)/gi, '').trim();
+                            title = title.replace(/(\d+K|KBPS|HD|ZENOFM)/gi, '').trim(); 
+                            title = title.replace(/[-|_]$/g, '').trim(); 
+                            title = title.replace(/\s+/g, ' ').trim();
+                            return title; 
+                        }
+                        
+                        let searchArtist = cleanTitle(artistText).toUpperCase();
+                        let searchSong = cleanTitle(songText).toUpperCase();
+                        searchArtist = searchArtist.replace(/,/g, ' & '); 
+                        
+                        if (searchSong.includes('SINTONIZANDO') || searchSong === '') {
+                            searchArtist = 'HEART LOVE FM';
+                            searchSong = 'SINTONIZANDO...';
+                        }
+                        
+                        artistaDisplay.textContent = artistText;
+                        cancionDisplay.textContent = songText;
+                        updateStatus('ONLINE'); 
+
+                        if (searchSong !== lastSong) {
+                            fetchAlbumArt(searchArtist, searchSong); 
+                            lastSong = searchSong;
+                        } 
+
+                    } catch (e) {
+                        console.error('Error al procesar metadatos SSE:', e);
+                        artistaDisplay.textContent = 'Error de Datos';
+                        cancionDisplay.textContent = 'Revisar Consola';
+                        updateStatus('Error de Datos'); 
+                    }
+                };
+            }
+            
+            // --- CONTROL PRINCIPAL (CRÍTICO - Ultra simple) ---
             
             function playRadio() {
                 
@@ -249,29 +315,12 @@
                 updateIcon('loading'); 
                 caratulaImg.src = LOADING_GIF;
 
-                // 1. **CAMBIO CRÍTICO AQUI**: Desmutear inmediatamente después de intentar play
-                radio.muted = false; // Intenta desmutear
-                radio.volume = controlVolumen.value; // Restaura volumen
+                // 1. Desmutear y establecer volumen antes de la llamada a play
+                radio.muted = false; 
+                radio.volume = controlVolumen.value;
                 
-                // 2. LLAMADA CRÍTICA: La TV permite esto porque el elemento está marcado como 'muted' en HTML
-                radio.play().then(() => {
-                    // ÉXITO: El audio ya está sonando (con suerte desmuteado).
-                    isPlaying = true;
-                    updateIcon('pause'); 
-                    
-                    // 3. RETRASAR LÓGICA COMPLEJA
-                    metadataTimeout = setTimeout(startPlayer, METADATA_LOAD_DELAY_MS);
-
-                }).catch(error => {
-                    // FALLO: Incluso el muted play fue bloqueado.
-                    console.error(`Error al reproducir el stream:`, error);
-                    updateStatus('OFFLINE (Bloqueo)');
-                    updateIcon('play'); 
-                    caratulaImg.src = defaultArt;
-                    // Restaurar Mute para el próximo intento
-                    radio.muted = true;
-                    alert('La reproducción fue bloqueada. Intente de nuevo.');
-                });
+                // 2. LLAMADA CRÍTICA: La única línea que la TV debe ejecutar
+                radio.play();
             }
             
             function stopRadio() {
@@ -279,15 +328,9 @@
                 radio.pause();
                 radio.muted = true; // Volver a mutear al parar
                 
-                if (metadataTimeout) {
-                    clearTimeout(metadataTimeout);
-                    metadataTimeout = null;
-                }
-                
-                setTimeout(() => {
-                     if (eventSource) { eventSource.close(); eventSource = null; }
-                }, 100); 
+                if (eventSource) { eventSource.close(); eventSource = null; }
 
+                // Forzar recarga del stream (necesario en muchos navegadores de TV)
                 const currentSrc = radio.src;
                 radio.src = ''; 
                 radio.load();
@@ -298,25 +341,46 @@
                 updateIcon('play'); 
                 updateStatus('PAUSA');
                 
+                // Limpiar la información mostrada
                 artistaDisplay.textContent = 'HEART LOVE FM';
                 cancionDisplay.textContent = 'PRESIONA PLAY PARA REINICIAR';
                 caratulaImg.src = defaultArt;
             }
+            
+            // --- EVENT LISTENER CRÍTICO PARA INICIAR METADATOS ---
+            // Solo se llama a startPlayer cuando el navegador confirma que el audio está SONANDO
+            radio.addEventListener('playing', () => {
+                if (!isPlaying) {
+                    isPlaying = true;
+                    updateIcon('pause'); 
+                    startPlayer(); // Carga de metadatos/carátula solo si el audio está activo.
+                }
+            });
+
+            radio.addEventListener('waiting', () => {
+                updateStatus('Cargando...');
+                updateIcon('loading'); 
+            });
+
+            radio.addEventListener('error', (e) => {
+                console.error('Error de audio:', e);
+                updateStatus('Error de Stream');
+                updateIcon('play'); 
+                isPlaying = false;
+            });
 
             btnPlay.addEventListener('click', playRadio);
             btnStop.addEventListener('click', stopRadio);
             
-            // --- LÓGICA DE VOLUMEN ---
+            // --- LÓGICA DE VOLUMEN (Se mantiene) ---
             function syncVolume(slider) {
                 const newVolume = parseFloat(slider.value);
                 radio.volume = newVolume;
                 
-                // Si movemos el slider y el volumen es > 0, desmuteamos si estaba muteado
                 if (newVolume > 0 && radio.muted) {
                     radio.muted = false;
                 }
                 
-                // Actualizar UI del slider (resto de la función es igual)
                 const volumePercentage = radio.volume * 100;
                 const accentColor = `rgb(${ACCENT_COLOR_RGB})`; 
                 const trackBackground = `linear-gradient(to right, ${accentColor} 0%, ${accentColor} ${volumePercentage}%, rgba(255, 255, 255, 0.2) ${volumePercentage}%, rgba(255, 255, 255, 0.2) 100%)`;
@@ -330,8 +394,7 @@
             
             controlVolumen.addEventListener('input', (event) => syncVolume(event.target));
             
-            // --- LÓGICA DE METADATOS Y CARÁTULA (Igual a la versión anterior) ---
-            
+            // --- LÓGICA DE CARÁTULA (Se mantiene) ---
             function fetchAlbumArtFallback(artist) { 
                  const fallbackUrl = `https://ws.audioscrobbler.com/2.0/?method=artist.gettopalbums&api_key=${LASTFM_API_KEY}&artist=${encodeURIComponent(artist)}&limit=1&format=json`;
                  fetch(fallbackUrl) 
@@ -390,68 +453,6 @@
                         console.error('Error en Intento 1 (Track Search):', error);
                         return fetchAlbumArtFallback(artist);
                     });
-            }
-            
-            function cleanTitle(title) {
-                title = title.replace(/\([^)]+\)/g, '').trim(); 
-                title = title.replace(/\[[^\]]+\]/g, '').trim();
-                title = title.replace(/(\d{4}|REMIX|RADIO EDIT|VERSION|LIVE|UNPLUGGED|FEAT\.|FT\.|MIX|ORIGINAL|RADIO)/gi, '').trim();
-                title = title.replace(/(\d+K|KBPS|HD|ZENOFM)/gi, '').trim(); 
-                title = title.replace(/[-|_]$/g, '').trim(); 
-                title = title.replace(/\s+/g, ' ').trim();
-                return title; 
-            }
-            
-            function startPlayer() {
-                updateStatus('ONLINE'); 
-                
-                if (eventSource) { eventSource.close(); }
-                eventSource = new EventSource(METADATA_PROXY_URL); 
-                
-                eventSource.onerror = () => {
-                    console.error('Error en la conexión SSE.');
-                    updateStatus('Error de Datos'); 
-                };
-
-                eventSource.onmessage = (event) => {
-                    try {
-                        const data = JSON.parse(event.data);
-                        const streamTitle = data.streamTitle || 'Heart Love FM - Sintonizando...';
-                        
-                        let artistText = 'Heart Love FM'; 
-                        let songText = streamTitle.trim();
-                        const parts = streamTitle.split(" - ");
-
-                        if (parts.length >= 2) {
-                            artistText = parts[0].trim();
-                            songText = parts[1].trim();
-                        }
-                        
-                        let searchArtist = cleanTitle(artistText).toUpperCase();
-                        let searchSong = cleanTitle(songText).toUpperCase();
-                        searchArtist = searchArtist.replace(/,/g, ' & '); 
-                        
-                        if (searchSong.includes('SINTONIZANDO') || searchSong === '') {
-                            searchArtist = 'HEART LOVE FM';
-                            searchSong = 'SINTONIZANDO...';
-                        }
-                        
-                        artistaDisplay.textContent = artistText;
-                        cancionDisplay.textContent = songText;
-                        updateStatus('ONLINE'); 
-
-                        if (searchSong !== lastSong) {
-                            fetchAlbumArt(searchArtist, searchSong); 
-                            lastSong = searchSong;
-                        } 
-
-                    } catch (e) {
-                        console.error('Error al procesar metadatos SSE:', e);
-                        artistaDisplay.textContent = 'Error de Datos';
-                        cancionDisplay.textContent = 'Revisar Consola';
-                        updateStatus('Error de Datos'); 
-                    }
-                };
             }
             
             // Inicialización al cargar la página

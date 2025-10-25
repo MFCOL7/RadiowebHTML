@@ -3,115 +3,288 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Radio Player TEST</title>
+    <title>Web Radio Player - Básico Final</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     
     <style>
+        /* --- ESTILOS MÍNIMOS Y CLAROS --- */
         :root {
-            --color-accent: #ff007f;
+            --color-accent: #ff007f; /* Rosa Neón */
             --main-bg: #121212; 
+            --text-light: #ffffff;
+            --text-faded: #a0a0a0;
         }
 
         body {
             font-family: sans-serif;
             background-color: var(--main-bg);
+            color: var(--text-light);
             min-height: 100vh;
+            margin: 0;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            text-align: center;
         }
 
-        /* --- BOTONES DE ACCIÓN --- */
-        #botones-accion {
-            display: flex;
-            gap: 20px;
+        /* --- CONTENEDOR PRINCIPAL --- */
+        #player-container {
+            width: 90%;
+            max-width: 500px;
+            padding: 30px;
+            border-radius: 15px;
+            background-color: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
         }
         
+        /* --- CARÁTULA --- */
+        #caratula-container {
+            width: 250px;
+            height: 250px;
+            margin: 0 auto 25px auto;
+            overflow: hidden;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(255, 0, 127, 0.5);
+        }
+        #caratula-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            /* La animación se elimina para simplificar aún más */
+        }
+
+        /* --- INFO DE LA CANCIÓN --- */
+        #online-text {
+            color: var(--color-accent); 
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        #artista-display {
+            font-size: 18px; 
+            color: var(--text-faded);
+            margin-bottom: 5px;
+        }
+        #cancion-display {
+            font-size: 28px; 
+            font-weight: 700;
+            color: var(--text-light);
+            line-height: 1.2;
+            word-wrap: break-word;
+            margin-bottom: 20px;
+        }
+        
+        /* --- CONTROLES Y VOLUMEN --- */
+        #controles-volumen {
+            display: flex;
+            align-items: center;
+            justify-content: space-between; 
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        /* Contenedor central de los botones Play/Stop */
+        #botones-accion {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* --- ESTILO BASE DEL BOTÓN PRINCIPAL (PLAY/STOP) --- */
         #btn-play, #btn-stop {
             background-color: var(--color-accent);
             color: #fff;
             border: none;
-            width: 80px; 
-            height: 80px;
+            width: 60px; 
+            height: 60px;
             border-radius: 50%; 
             cursor: pointer;
-            font-size: 35px;
+            font-size: 25px;
             display: flex;
             justify-content: center;
             align-items: center;
-            box-shadow: 0 0 15px rgba(255, 0, 127, 0.9);
+            box-shadow: 0 0 10px rgba(255, 0, 127, 0.7);
             transition: transform 0.2s;
             padding: 0;
         }
         #btn-play i {
-             margin-left: 5px; /* Ajuste óptico */
+             margin-left: 3px;
+        }
+        #btn-play:hover, #btn-stop:hover {
+            transform: scale(1.1);
+        }
+        
+        /* --- VOLUMEN CONTENEDOR Y SLIDER --- */
+        .volumen-container {
+            display: flex;
+            align-items: center;
+            width: 35%; 
+            min-width: 120px;
+        }
+
+        #volumen-slider { 
+            width: 80px; 
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2); 
+            border-radius: 3px;
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin: 0 5px;
+        }
+        #volumen-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--color-accent);
+            cursor: pointer;
+            border: 2px solid #fff;
+        }
+        #volume-icon {
+            font-size: 16px; 
+            color: var(--color-accent); 
+        }
+
+        /* Media Query para móvil vertical */
+        @media (max-width: 600px) {
+            .volumen-container {
+                display: none;
+            }
         }
     </style>
 </head>
 <body>
 
-    <h1>Heart Love FM - Test de Compatibilidad</h1>
-    
-    <div id="botones-accion">
-        <button id="btn-stop" style="display: none;">
-            <i class="fa-solid fa-stop"></i>
-        </button>
-        <button id="btn-play">
-            <i class="fa-solid fa-play"></i>
-        </button>
+    <div id="player-container">
+        
+        <div id="caratula-container">
+            <img id="caratula-img" src="IMAGEN_INICIAL_DEFAULT.webp" alt="Logo de Heart Love FM" />
+        </div>
+        
+        <div id="text-info">
+            <div id="online-text"></div>
+            <div id="artista-display">HEART LOVE FM</div>
+            <div id="cancion-display">PRESIONA PLAY PARA COMENZAR</div>
+        </div>
+        
+        <div id="controles-volumen">
+            
+            <div id="volumen-izq" class="volumen-container">
+                <i id="volume-icon" class="fa-solid fa-volume-low"></i>
+                <input type="range" id="volumen-slider" min="0" max="1" step="0.01" value="0.5">
+            </div>
+            
+            <div id="botones-accion">
+                <button id="btn-stop" style="display: none;">
+                    <i class="fa-solid fa-stop"></i>
+                </button>
+                <button id="btn-play">
+                    <i class="fa-solid fa-play"></i>
+                </button>
+            </div>
+            
+            <div id="volumen-der" class="volumen-container"></div>
+        </div>
+
     </div>
     
     <audio id="radio-stream" crossorigin="anonymous" src="https://stream.zeno.fm/cr8evht2huruv"></audio>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // *** CONFIGURACIÓN CLAVE ***
+            const METADATA_PROXY_URL = 'https://api.zeno.fm/mounts/metadata/subscribe/cr8evht2huruv'; 
+            const LASTFM_API_KEY = '217df5ef951f0b3813906b25c5cb5448'; 
+            const ALBUM_ART_PROXY_URL = 'https://images.weserv.nl/?url='; 
             
+            const defaultArt = 'https://zeno.fm/_ipx/_/https://images.zeno.fm/LGol9lXeVJlVfO1bhAvAiJ7s3yl7nAUcaVf-hw/rs:fill:288:288/g:ce:0:0/aHR0cHM6Ly9wcm94eS56ZW5vLmZtL2NvbnRlbnQvc3RhdGlvbnMvMTllOWM2NDktODNmZS00ZDA1LWEwNGYtY2Y5NThiNDEzMTlhL2ltYWdlLz91PTE3MzE5ODYxMzgwMDA.webp'; 
+            const ACCENT_COLOR_RGB = '255, 0, 127'; 
+            // --------------------------------
+
+            // --- REFERENCIAS DE ELEMENTOS ---
             const radio = document.getElementById('radio-stream');
             const btnPlay = document.getElementById('btn-play'); 
             const btnStop = document.getElementById('btn-stop'); 
             
-            let isPlaying = false;
+            const controlVolumen = document.getElementById('volumen-slider'); 
+            const volumeIcon = document.getElementById('volume-icon'); 
+            
+            const onlineText = document.getElementById('online-text');
+            const artistaDisplay = document.getElementById('artista-display');
+            const cancionDisplay = document.getElementById('cancion-display');
+            const caratulaImg = document.getElementById('caratula-img'); 
 
-            // Muestra/Oculta los botones Play/Stop
-            function toggleButtons(showPlay) {
-                btnPlay.style.display = showPlay ? 'flex' : 'none';
-                btnStop.style.display = showPlay ? 'none' : 'flex';
-                // El botón de Play tendrá el icono de carga mientras intenta conectar.
-                if (showPlay) {
-                    btnPlay.querySelector('i').className = 'fa-solid fa-play';
+            let isPlaying = false;
+            let eventSource = null; 
+            let lastSong = ''; 
+
+            // --- FUNCIONES DE INTERFAZ (Mínimo Esfuerzo) ---
+            
+            function updateStatus(message) {
+                const accentColor = `rgb(${ACCENT_COLOR_RGB})`;
+                onlineText.innerHTML = `• <span style="color:${accentColor};">${message.toUpperCase()}</span>`;
+
+                if (message.includes('PAUSA') || message.includes('OFFLINE') || message.includes('MUTE') || message.includes('Bloqueo')) {
+                    onlineText.innerHTML = `• <span style="color:#888888;">${message.toUpperCase()}</span>`;
+                }
+                if (message.includes('CONECTANDO') || message.includes('Error')) {
+                    onlineText.innerHTML = `• <span style="color:orange;">${message.toUpperCase()}</span>`;
                 }
             }
+            
+            function updateIcon(iconState) {
+                if (iconState === 'loading' || iconState === 'play') {
+                    btnPlay.style.display = 'flex';
+                    btnStop.style.display = 'none';
+                    const iconClass = (iconState === 'loading') ? 'fa-solid fa-arrows-rotate fa-spin' : 'fa-solid fa-play';
+                    btnPlay.querySelector('i').className = iconClass;
 
-            // MÍNIMO ESFUERZO: Solo Play y manejo de promesa
+                } else if (iconState === 'pause' || iconState === 'stop') {
+                     btnPlay.style.display = 'none';
+                     btnStop.style.display = 'flex';
+                     btnStop.querySelector('i').className = 'fa-solid fa-stop';
+                }
+            }
+            
+            // --- CONTROL PRINCIPAL (El que la TV debe ejecutar primero) ---
+            
             function playRadio() {
                 
-                if (isPlaying) return; 
-
-                // Mostrar icono de carga al iniciar
-                btnPlay.querySelector('i').className = 'fa-solid fa-arrows-rotate fa-spin';
-
+                if (isPlaying) return;
+                
+                updateStatus('CONECTANDO');
+                updateIcon('loading'); 
+                
+                // 1. **LLAMADA CRÍTICA:** Solo radio.play()
                 radio.play().then(() => {
-                    // ÉXITO
+                    // ÉXITO: El audio ya está sonando.
                     isPlaying = true;
-                    toggleButtons(false); // Mostrar Stop
+                    updateIcon('pause'); // Mostrar Stop
+                    
+                    // 2. **INICIAR LÓGICA COMPLEJA AQUÍ** (Retrasada)
+                    startPlayer();
 
                 }).catch(error => {
                     // FALLO
-                    isPlaying = false;
-                    toggleButtons(true); // Mostrar Play (sin carga)
-                    console.error("Fallo de Play en TV:", error);
-                    alert('La reproducción fue bloqueada por el navegador de la TV.');
+                    console.error(`Error al reproducir el stream:`, error);
+                    updateStatus('OFFLINE (Bloqueo)');
+                    updateIcon('play'); // Mostrar Play
+                    alert('La radio no se pudo iniciar. Intente de nuevo.');
                 });
             }
             
-            // MÍNIMO ESFUERZO: Solo Pause y recarga del stream
             function stopRadio() {
-                if (!isPlaying) return;
                 
                 radio.pause();
                 
-                // Forzar recarga de la URL para asegurar la reconexión.
+                // Cerrar la conexión de metadatos (EventSource)
+                if (eventSource) { eventSource.close(); eventSource = null; }
+                
+                // Forzar recarga del stream
                 const currentSrc = radio.src;
                 radio.src = ''; 
                 radio.load();
@@ -119,11 +292,172 @@
                 radio.load();
                 
                 isPlaying = false;
-                toggleButtons(true); // Mostrar Play
+                updateIcon('play'); 
+                updateStatus('PAUSA');
+                
+                // Limpiar la información mostrada
+                artistaDisplay.textContent = 'HEART LOVE FM';
+                cancionDisplay.textContent = 'PRESIONA PLAY PARA REINICIAR';
+                caratulaImg.src = defaultArt;
             }
 
             btnPlay.addEventListener('click', playRadio);
             btnStop.addEventListener('click', stopRadio);
+            
+            // --- LÓGICA DE VOLUMEN (Se mantiene simple) ---
+            function syncVolume(slider) {
+                radio.volume = parseFloat(slider.value);
+                const volumePercentage = radio.volume * 100;
+                const accentColor = `rgb(${ACCENT_COLOR_RGB})`; 
+                
+                // Estilo del Slider
+                const trackBackground = `linear-gradient(to right, ${accentColor} 0%, ${accentColor} ${volumePercentage}%, rgba(255, 255, 255, 0.2) ${volumePercentage}%, rgba(255, 255, 255, 0.2) 100%)`;
+                slider.style.background = trackBackground;
+
+                // Icono
+                let iconClass = 'fa-volume-high';
+                if (radio.volume === 0) { iconClass = 'fa-volume-off'; } 
+                else if (radio.volume < 0.5) { iconClass = 'fa-volume-low'; }
+                volumeIcon.className = `fa-solid ${iconClass}`;
+            }
+            
+            controlVolumen.addEventListener('input', (event) => syncVolume(event.target));
+            
+            // --- LÓGICA DE METADATOS Y CARÁTULA (Ahora en una función separada) ---
+            
+            function fetchAlbumArtFallback(artist) { 
+                 const fallbackUrl = `https://ws.audioscrobbler.com/2.0/?method=artist.gettopalbums&api_key=${LASTFM_API_KEY}&artist=${encodeURIComponent(artist)}&limit=1&format=json`;
+                 fetch(fallbackUrl) 
+                     .then(response => response.json())
+                     .then(data => {
+                         let imageUrl = defaultArt;
+                         const album = data.topalbums?.album?.[0];
+                         if (album && album.image) {
+                             const largeImage = album.image.find(img => img.size === 'extralarge' || img.size === 'large');
+                             if (largeImage && largeImage['#text']) {
+                                 imageUrl = ALBUM_ART_PROXY_URL + encodeURIComponent(largeImage['#text']);
+                             }
+                         }
+                         caratulaImg.src = imageUrl.includes('2a96cbd8b46e442fc41c2b86b821562f') ? defaultArt : imageUrl;
+                     })
+                     .catch(error => {
+                         console.error('Error en Intento 2 (Artist Top Album):', error);
+                         caratulaImg.src = defaultArt; 
+                     });
+            }
+            
+            function fetchAlbumArt(artist, song) { 
+                caratulaImg.src = defaultArt; 
+                
+                if (!artist || !song || artist.includes('HEART LOVE') || song.includes('SINTONIZANDO...')) {
+                    caratulaImg.src = defaultArt;
+                    return;
+                }
+                
+                const searchUrl = `https://ws.audioscrobbler.com/20/?method=track.search&api_key=${LASTFM_API_KEY}&artist=${encodeURIComponent(artist)}&track=${encodeURIComponent(song)}&format=json`;
+                
+                fetch(searchUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        let imageUrl = null;
+                        const trackMatches = data.results?.trackmatches?.track;
+                        
+                        if (trackMatches && trackMatches.length > 0) {
+                            const track = Array.isArray(trackMatches) ? trackMatches[0] : trackMatches;
+                            const imageArray = track.image;
+                            if (imageArray) {
+                                const largeImage = imageArray.find(img => img.size === 'extralarge' || img.size === 'large');
+                                if (largeImage && largeImage['#text']) {
+                                    imageUrl = ALBUM_ART_PROXY_URL + encodeURIComponent(largeImage['#text']); 
+                                }
+                            }
+                        }
+
+                        if (imageUrl && !imageUrl.includes('2a96cbd8b46e442fc41c2b86b821562f')) {
+                            caratulaImg.src = imageUrl;
+                        } else {
+                            return fetchAlbumArtFallback(artist);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error en Intento 1 (Track Search):', error);
+                        return fetchAlbumArtFallback(artist);
+                    });
+            }
+            
+            // Función que inicia la conexión de metadatos SSE
+            function startPlayer() {
+                updateStatus('ONLINE'); 
+                
+                if (eventSource) { eventSource.close(); }
+                eventSource = new EventSource(METADATA_PROXY_URL); 
+                
+                eventSource.onerror = () => {
+                    console.error('Error en la conexión SSE.');
+                    updateStatus('Error de Datos'); 
+                };
+
+                eventSource.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        const streamTitle = data.streamTitle || 'Heart Love FM - Sintonizando...';
+                        
+                        let artistText = ''; 
+                        let songText = ''; 
+                        const parts = streamTitle.split(" - ");
+
+                        if (parts.length >= 2) {
+                            artistText = parts[0].trim();
+                            songText = parts[1].trim();
+                        } else {
+                            songText = streamTitle.trim();
+                            artistText = 'Heart Love FM'; 
+                        }
+                        
+                        function cleanTitle(title) {
+                             // Función de limpieza de texto (se mantiene igual)
+                            title = title.replace(/\([^)]+\)/g, '').trim(); 
+                            title = title.replace(/\[[^\]]+\]/g, '').trim();
+                            title = title.replace(/(\d{4}|REMIX|RADIO EDIT|VERSION|LIVE|UNPLUGGED|FEAT\.|FT\.|MIX|ORIGINAL|RADIO)/gi, '').trim();
+                            title = title.replace(/(\d+K|KBPS|HD|ZENOFM)/gi, '').trim(); 
+                            title = title.replace(/[-|_]$/g, '').trim(); 
+                            title = title.replace(/\s+/g, ' ').trim();
+                            return title; 
+                        }
+
+                        let searchArtist = cleanTitle(artistText).toUpperCase();
+                        let searchSong = cleanTitle(songText).toUpperCase();
+                        searchArtist = searchArtist.replace(/,/g, ' & '); 
+                        
+                        if (searchSong.includes('SINTONIZANDO') || searchSong === '') {
+                            searchArtist = 'HEART LOVE FM';
+                            searchSong = 'SINTONIZANDO...';
+                        }
+                        
+                        // Actualizar UI
+                        artistaDisplay.textContent = artistText;
+                        cancionDisplay.textContent = songText;
+                        updateStatus('ONLINE'); 
+
+                        if (searchSong !== lastSong) {
+                            fetchAlbumArt(searchArtist, searchSong); 
+                            lastSong = searchSong;
+                        } 
+
+                    } catch (e) {
+                        console.error('Error al procesar metadatos SSE:', e);
+                        artistaDisplay.textContent = 'Error de Datos';
+                        cancionDisplay.textContent = 'Revisar Consola';
+                        updateStatus('Error de Datos'); 
+                    }
+                };
+            }
+            
+            // Inicialización al cargar la página
+            caratulaImg.src = defaultArt;
+            radio.volume = controlVolumen.value;
+            syncVolume(controlVolumen); 
+            updateStatus('OFFLINE');
         });
     </script>
 </body>

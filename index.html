@@ -3,460 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Radio Player - SOLUCIÓN FINAL (VEWD)</title>
+    <title>HEARTLOVE FM</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    
     <style>
-        /* (Estilos CSS idénticos para mantener el diseño) */
-        :root {
-            --color-accent: #ff007f;
-            --main-bg: #121212; 
-            --text-light: #ffffff;
-            --text-faded: #a0a0a0;
-        }
-
-        body {
-            font-family: sans-serif;
-            background-color: var(--main-bg);
-            color: var(--text-light);
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-        }
-
-        #player-container {
-            width: 90%;
-            max-width: 500px;
-            padding: 30px;
-            border-radius: 15px;
-            background-color: rgba(255, 255, 255, 0.05);
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;900&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         
-        #caratula-container {
-            width: 250px;
-            height: 250px;
-            margin: 0 auto 25px auto;
-            overflow: hidden;
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(255, 0, 127, 0.7);
-        }
-        #caratula-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+        body { 
+            font-family: 'Montserrat', sans-serif; 
+            height: 100vh; display: flex; justify-content: center; align-items: center; 
+            overflow: hidden; 
+            background: linear-gradient(180deg, #1a0b2e 0%, #6e3a5e 50%, #ff9a8b 100%);
+            color: white;
         }
 
-        #online-text {
-            color: var(--color-accent); 
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        #artista-display {
-            font-size: 18px; 
-            color: var(--text-faded);
-            margin-bottom: 5px;
-        }
-        #cancion-display {
-            font-size: 28px; 
-            font-weight: 700;
-            color: var(--text-light);
-            line-height: 1.2;
-            word-wrap: break-word;
-            margin-bottom: 20px;
-        }
+        #canvas-env { position: fixed; top: 0; left: 0; z-index: 1; pointer-events: none; }
+        #main-player { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; }
+
+        .visual-core { position: relative; width: 320px; height: 320px; display: flex; justify-content: center; align-items: center; }
         
-        #controles-volumen {
-            display: flex;
-            align-items: center;
-            justify-content: space-between; 
-            width: 100%;
-            max-width: 400px;
-            margin: 0 auto;
+        #aura {
+            position: absolute; width: 80%; height: 80%; border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 70%);
+            filter: blur(30px); opacity: 0.5; transition: transform 0.1s ease-out;
         }
 
-        #botones-accion {
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        #album-art {
+            width: 240px; height: 240px; border-radius: 50%; object-fit: cover;
+            border: 6px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.5); z-index: 5;
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        #btn-play, #btn-stop {
-            background-color: var(--color-accent);
-            color: #fff;
-            border: none;
-            width: 60px; 
-            height: 60px;
-            border-radius: 50%; 
-            cursor: pointer;
-            font-size: 25px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 0 10px rgba(255, 0, 127, 0.7);
-            transition: transform 0.2s;
-            padding: 0;
-        }
-        #btn-play i {
-             margin-left: 3px;
-        }
-        #btn-play:hover, #btn-stop:hover {
-            transform: scale(1.1);
-        }
-        
-        .volumen-container {
-            display: flex;
-            align-items: center;
-            width: 35%; 
-            min-width: 120px;
+        #info { text-align: center; margin-top: 35px; min-height: 80px; }
+        #track-title { font-size: 26px; font-weight: 900; letter-spacing: -1px; margin-bottom: 5px; text-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+        #artist-name { font-size: 13px; letter-spacing: 5px; text-transform: uppercase; opacity: 0.7; }
+
+        .controls {
+            margin-top: 40px; display: flex; align-items: center; gap: 25px;
+            background: rgba(255, 255, 255, 0.1); padding: 18px 40px;
+            border-radius: 100px; backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        #volumen-slider { 
-            width: 80px; 
-            height: 6px;
-            background: rgba(255, 255, 255, 0.2); 
-            border-radius: 3px;
-            cursor: pointer;
-            -webkit-appearance: none;
-            margin: 0 5px;
+        #play-btn {
+            background: #fff; color: #ff4b2b; border: none; width: 55px; height: 55px;
+            border-radius: 50%; font-size: 22px; cursor: pointer; transition: 0.3s;
         }
-        #volumen-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: var(--color-accent);
-            cursor: pointer;
-            border: 2px solid #fff;
-        }
-        #volume-icon {
-            font-size: 16px; 
-            color: var(--color-accent); 
-        }
-
-        @media (max-width: 600px) {
-            .volumen-container {
-                display: none;
-            }
-        }
+        #play-btn:hover { transform: scale(1.1); box-shadow: 0 0 25px white; }
+        input[type=range] { accent-color: white; width: 90px; cursor: pointer; opacity: 0.6; }
     </style>
 </head>
 <body>
 
-    <div id="player-container">
-        
-        <div id="caratula-container">
-            <img id="caratula-img" src="IMAGEN_INICIAL_DEFAULT.webp" alt="Logo de Heart Love FM" />
-        </div>
-        
-        <div id="text-info">
-            <div id="online-text"></div>
-            <div id="artista-display">HEART LOVE FM</div>
-            <div id="cancion-display">PRESIONA PLAY PARA COMENZAR</div>
-        </div>
-        
-        <div id="controles-volumen">
-            
-            <div id="volumen-izq" class="volumen-container">
-                <i id="volume-icon" class="fa-solid fa-volume-low"></i>
-                <input type="range" id="volumen-slider" min="0" max="1" step="0.01" value="0.5">
-            </div>
-            
-            <div id="botones-accion">
-                <button id="btn-stop" style="display: none;">
-                    <i class="fa-solid fa-stop"></i>
-                </button>
-                <button id="btn-play">
-                    <i class="fa-solid fa-play"></i>
-                </button>
-            </div>
-            
-            <div id="volumen-der" class="volumen-container"></div>
+    <canvas id="canvas-env"></canvas>
+
+    <div id="main-player">
+        <div class="visual-core">
+            <div id="aura"></div>
+            <img id="album-art" src="https://i.pinimg.com/736x/01/2d/86/012d86f7b9f3944697332f146603a1f7.jpg" alt="Art">
         </div>
 
+        <div id="info">
+            <h1 id="track-title">Conectando...</h1>
+            <h2 id="artist-name">HEART LOVE FM</h2>
+        </div>
+
+        <div class="controls">
+            <input type="range" id="vol" min="0" max="1" step="0.01" value="0.7">
+            <button id="play-btn"><i class="fa-solid fa-play"></i></button>
+        </div>
     </div>
-    
-    <audio id="radio-stream" crossorigin="anonymous" volume="0" src="https://stream.zeno.fm/cr8evht2huruv"></audio>
+
+    <audio id="stream" crossorigin="anonymous"></audio>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // *** CONFIGURACIÓN CLAVE ***
-            const STREAM_URL = 'https://stream.zeno.fm/cr8evht2huruv';
-            const METADATA_PROXY_URL = 'https://api.zeno.fm/mounts/metadata/subscribe/cr8evht2huruv'; 
-            const LASTFM_API_KEY = '217df5ef951f0b3813906b25c5cb5448'; 
-            const ALBUM_ART_PROXY_URL = 'https://images.weserv.nl/?url='; 
-            
-            const defaultArt = 'https://zeno.fm/_ipx/_/https://images.zeno.fm/LGol9lXeVJlVfO1bhAvAiJ7s3yl7nAUcaVf-hw/rs:fill:288:288/g:ce:0:0/aHR0cHM6Ly9wcm94eS56ZW5vLmZtL2NvbnRlbnQvc3RhdGlvbnMvMTllOWM2NDktODNmZS00ZDA1LWEwNGYtY2Y5NThiNDEzMTlhL2ltYWdlLz91PTE3MzE5ODYxMzgwMDA.webp'; 
-            const LOADING_GIF = '1000001199.gif'; 
-            const ACCENT_COLOR_RGB = '255, 0, 127'; 
-            // --------------------------------
+        const streamUrl = "https://stream.zeno.fm/cr8evht2huruv";
+        const defaultArt = "https://i.pinimg.com/736x/01/2d/86/012d86f7b9f3944697332f146603a1f7.jpg";
+        const audio = document.getElementById('stream');
+        const playBtn = document.getElementById('play-btn');
+        const art = document.getElementById('album-art');
+        const aura = document.getElementById('aura');
+        const canvas = document.getElementById('canvas-env');
+        const ctx = canvas.getContext('2d');
 
-            // --- REFERENCIAS DE ELEMENTOS ---
-            const radio = document.getElementById('radio-stream');
-            const btnPlay = document.getElementById('btn-play'); 
-            const btnStop = document.getElementById('btn-stop'); 
-            
-            const controlVolumen = document.getElementById('volumen-slider'); 
-            const volumeIcon = document.getElementById('volume-icon'); 
-            
-            const onlineText = document.getElementById('online-text');
-            const artistaDisplay = document.getElementById('artista-display');
-            const cancionDisplay = document.getElementById('cancion-display');
-            const caratulaImg = document.getElementById('caratula-img'); 
+        let audioCtx, analyser, dataArray, isPlaying = false;
+        let particles = [];
 
-            let isPlaying = false;
-            let eventSource = null; 
-            let lastSong = ''; 
-
-            // --- FUNCIONES DE INTERFAZ ---
-            function updateStatus(message) {
-                const accentColor = `rgb(${ACCENT_COLOR_RGB})`;
-                onlineText.innerHTML = `• <span style="color:${accentColor};">${message.toUpperCase()}</span>`;
-                if (message.includes('PAUSA') || message.includes('OFFLINE') || message.includes('MUTE') || message.includes('Bloqueo')) {
-                    onlineText.innerHTML = `• <span style="color:#888888;">${message.toUpperCase()}</span>`;
-                }
-                if (message.includes('CONECTANDO') || message.includes('Error')) {
-                    onlineText.innerHTML = `• <span style="color:orange;">${message.toUpperCase()}</span>`;
-                }
+        function initParticles() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            particles = [];
+            for(let i=0; i<60; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 2 + 1,
+                    speed: Math.random() * 0.5 + 0.2,
+                    opacity: Math.random()
+                });
             }
-            
-            function updateIcon(iconState) {
-                if (iconState === 'loading' || iconState === 'play') {
-                    btnPlay.style.display = 'flex';
-                    btnStop.style.display = 'none';
-                    const iconClass = (iconState === 'loading') ? 'fa-solid fa-arrows-rotate fa-spin' : 'fa-solid fa-play';
-                    btnPlay.querySelector('i').className = iconClass;
-                } else if (iconState === 'pause' || iconState === 'stop') {
-                     btnPlay.style.display = 'none';
-                     btnStop.style.display = 'flex';
-                     btnStop.querySelector('i').className = 'fa-solid fa-stop';
-                }
+        }
+
+        function draw() {
+            requestAnimationFrame(draw);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.y -= p.speed;
+                if(p.y < -10) p.y = canvas.height + 10;
+                ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+            });
+
+            if(isPlaying && analyser) {
+                analyser.getByteFrequencyData(dataArray);
+                let avg = dataArray.reduce((a,b) => a+b) / dataArray.length;
+                let intensity = avg / 180;
+                aura.style.transform = `scale(${1 + intensity})`;
+                aura.style.opacity = 0.3 + intensity;
+                art.style.transform = `scale(${1 + (intensity * 0.15)})`;
             }
+        }
 
-            // --- LÓGICA DE METADATOS (Se mantiene) ---
-            function cleanTitle(title) {
-                title = title.replace(/\([^)]+\)/g, '').trim(); 
-                title = title.replace(/\[[^\]]+\]/g, '').trim();
-                title = title.replace(/(\d{4}|REMIX|RADIO EDIT|VERSION|LIVE|UNPLUGGED|FEAT\.|FT\.|MIX|ORIGINAL|RADIO)/gi, '').trim();
-                title = title.replace(/(\d+K|KBPS|HD|ZENOFM)/gi, '').trim(); 
-                title = title.replace(/[-|_]$/g, '').trim(); 
-                title = title.replace(/\s+/g, ' ').trim();
-                return title; 
+        async function playRadio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioCtx.createAnalyser();
+                const src = audioCtx.createMediaElementSource(audio);
+                src.connect(analyser);
+                analyser.connect(audioCtx.destination);
+                analyser.fftSize = 32;
+                dataArray = new Uint8Array(analyser.frequencyBinCount);
             }
-            
-            function fetchAlbumArtFallback(artist) { 
-                 const fallbackUrl = `https://ws.audioscrobbler.com/2.0/?method=artist.gettopalbums&api_key=${LASTFM_API_KEY}&artist=${encodeURIComponent(artist)}&limit=1&format=json`;
-                 fetch(fallbackUrl) 
-                     .then(response => response.json())
-                     .then(data => {
-                         let imageUrl = defaultArt;
-                         const album = data.topalbums?.album?.[0];
-                         if (album && album.image) {
-                             const largeImage = album.image.find(img => img.size === 'extralarge' || img.size === 'large');
-                             if (largeImage && largeImage['#text']) {
-                                 imageUrl = ALBUM_ART_PROXY_URL + encodeURIComponent(largeImage['#text']);
-                             }
-                         }
-                         caratulaImg.src = imageUrl.includes('2a96cbd8b46e442fc41c2b86b821562f') ? defaultArt : imageUrl;
-                     })
-                     .catch(error => {
-                         console.error('Error en Intento 2 (Artist Top Album):', error);
-                         caratulaImg.src = defaultArt; 
-                     });
-            }
-            
-            function fetchAlbumArt(artist, song) { 
-                caratulaImg.src = LOADING_GIF; 
-                
-                if (!artist || !song || artist.includes('HEART LOVE') || song.includes('SINTONIZANDO...')) {
-                    caratulaImg.src = defaultArt;
-                    return;
-                }
-                
-                const searchUrl = `https://ws.audioscrobbler.com/20/?method=track.search&api_key=${LASTFM_API_KEY}&artist=${encodeURIComponent(artist)}&track=${encodeURIComponent(song)}&format=json`;
-                
-                fetch(searchUrl)
-                    .then(response => response.json())
-                    .then(data => {
-                        let imageUrl = null;
-                        const trackMatches = data.results?.trackmatches?.track;
-                        
-                        if (trackMatches && trackMatches.length > 0) {
-                            const track = Array.isArray(trackMatches) ? trackMatches[0] : trackMatches;
-                            const imageArray = track.image;
-                            if (imageArray) {
-                                const largeImage = imageArray.find(img => img.size === 'extralarge' || img.size === 'large');
-                                if (largeImage && largeImage['#text']) {
-                                    imageUrl = ALBUM_ART_PROXY_URL + encodeURIComponent(largeImage['#text']); 
-                                }
-                            }
-                        }
+            if (audioCtx.state === 'suspended') await audioCtx.resume();
 
-                        if (imageUrl && !imageUrl.includes('2a96cbd8b46e442fc41c2b86b821562f')) {
-                            caratulaImg.src = imageUrl;
-                        } else {
-                            return fetchAlbumArtFallback(artist);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error en Intento 1 (Track Search):', error);
-                        return fetchAlbumArtFallback(artist);
-                    });
-            }
-            
-            function startPlayer() {
-                updateStatus('ONLINE'); 
-                
-                if (eventSource) { eventSource.close(); }
-                eventSource = new EventSource(METADATA_PROXY_URL); 
-                
-                eventSource.onerror = () => {
-                    console.error('Error en la conexión SSE.');
-                    updateStatus('Error de Datos'); 
-                };
+            audio.src = streamUrl; 
+            audio.load();
+            audio.play().then(() => {
+                isPlaying = true;
+                playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+            });
+        }
 
-                eventSource.onmessage = (event) => {
-                    try {
-                        const data = JSON.parse(event.data);
-                        const streamTitle = data.streamTitle || 'Heart Love FM - Sintonizando...';
-                        
-                        let artistText = 'Heart Love FM'; 
-                        let songText = streamTitle.trim();
-                        const parts = streamTitle.split(" - ");
-
-                        if (parts.length >= 2) {
-                            artistText = parts[0].trim();
-                            songText = parts[1].trim();
-                        }
-                        
-                        let searchArtist = cleanTitle(artistText).toUpperCase();
-                        let searchSong = cleanTitle(songText).toUpperCase();
-                        searchArtist = searchArtist.replace(/,/g, ' & '); 
-                        
-                        if (searchSong.includes('SINTONIZANDO') || searchSong === '') {
-                            searchArtist = 'HEART LOVE FM';
-                            searchSong = 'SINTONIZANDO...';
-                        }
-                        
-                        artistaDisplay.textContent = artistText;
-                        cancionDisplay.textContent = songText;
-                        updateStatus('ONLINE'); 
-
-                        if (searchSong !== lastSong) {
-                            fetchAlbumArt(searchArtist, searchSong); 
-                            lastSong = searchSong;
-                        } 
-
-                    } catch (e) {
-                        console.error('Error al procesar metadatos SSE:', e);
-                        artistaDisplay.textContent = 'Error de Datos';
-                        cancionDisplay.textContent = 'Revisar Consola';
-                        updateStatus('Error de Datos'); 
-                    }
-                };
-            }
-
-            // --- CONTROL PRINCIPAL (CRÍTICO - FORZADO) ---
-            
-            function playRadio() {
-                if (isPlaying) return;
-                
-                updateStatus('CONECTANDO');
-                updateIcon('loading'); 
-                caratulaImg.src = LOADING_GIF;
-                
-                // 1. FORZAR LA RECARGA: Esto imita la acción de ir al link directo.
-                // Reasigna el mismo SRC y carga el stream de nuevo
-                radio.src = STREAM_URL; 
-                radio.load();
-
-                // 2. Acción CRÍTICA: Establecer volumen y llamar a play inmediatamente.
-                radio.volume = controlVolumen.value;
-                radio.play();
-                
-                // Si la reproducción falla aquí, el error será capturado por radio.addEventListener('error')
-            }
-            
-            function stopRadio() {
-                radio.pause();
-                
-                // Cierra la fuente de datos si está abierta
-                if (eventSource) { eventSource.close(); eventSource = null; }
-
-                // Restablecer el estado del audio para una nueva reproducción
-                radio.src = ''; 
-                radio.load();
-                radio.src = STREAM_URL;
-                radio.load();
-                
+        playBtn.onclick = () => {
+            if (!isPlaying) playRadio();
+            else {
+                audio.pause();
+                audio.src = "";
                 isPlaying = false;
-                updateIcon('play'); 
-                updateStatus('PAUSA');
-                
-                artistaDisplay.textContent = 'HEART LOVE FM';
-                cancionDisplay.textContent = 'PRESIONA PLAY PARA REINICIAR';
-                caratulaImg.src = defaultArt;
+                playBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
             }
-            
-            // --- EVENT LISTENERS ---
-            
-            // Evento CRÍTICO: Dispara metadatos solo cuando el navegador confirma que el audio está SONANDO.
-            radio.addEventListener('playing', () => {
-                if (!isPlaying) {
-                    isPlaying = true;
-                    updateIcon('pause'); 
-                    startPlayer(); 
+        };
+
+        function startMetadata() {
+            const es = new EventSource('https://api.zeno.fm/mounts/metadata/subscribe/cr8evht2huruv');
+            es.onmessage = (e) => {
+                const data = JSON.parse(e.data);
+                if(data.streamTitle) {
+                    const parts = data.streamTitle.split(' - ');
+                    const artist = (parts[0] || "Heart Love").trim();
+                    const song = (parts[1] || "FM").trim();
+                    document.getElementById('track-title').innerText = song;
+                    document.getElementById('artist-name').innerText = artist;
+                    updateArt(artist, song);
                 }
-            });
+            };
+        }
 
-            radio.addEventListener('waiting', () => {
-                updateStatus('Cargando...');
-                updateIcon('loading'); 
-            });
-
-            radio.addEventListener('error', (e) => {
-                console.error('Error de audio:', e);
-                updateStatus('Error de Stream');
-                updateIcon('play'); 
-                isPlaying = false;
-                // Alerta para el usuario, ya que el VEWD bloquea silenciosamente
-                alert('El navegador VEWD ha bloqueado la reproducción de audio.');
-            });
+        async function updateArt(artist, song) {
+            // LIMPIEZA EXTREMA PARA BUSCAR LA CARÁTULA CORRECTA
+            let cleanArtist = artist.replace(/radio|fm|live|oficial|estéreo/gi, '').trim();
+            let cleanSong = song.split('(')[0].split('-')[0].split('[')[0].trim();
             
-            btnPlay.addEventListener('click', playRadio);
-            btnStop.addEventListener('click', stopRadio);
-            
-            // --- LÓGICA DE VOLUMEN ---
-            function syncVolume(slider) {
-                const newVolume = parseFloat(slider.value);
-                radio.volume = newVolume;
+            const query = encodeURIComponent(`${cleanArtist} ${cleanSong}`);
+            try {
+                // Buscamos solo canciones para evitar resultados raros
+                const res = await fetch(`https://itunes.apple.com/search?term=${query}&limit=1&entity=song`);
+                const data = await res.json();
                 
-                const volumePercentage = radio.volume * 100;
-                const accentColor = `rgb(${ACCENT_COLOR_RGB})`; 
-                const trackBackground = `linear-gradient(to right, ${accentColor} 0%, ${accentColor} ${volumePercentage}%, rgba(255, 255, 255, 0.2) ${volumePercentage}%, rgba(255, 255, 255, 0.2) 100%)`;
-                slider.style.background = trackBackground;
-
-                let iconClass = 'fa-volume-high';
-                if (radio.volume === 0) { iconClass = 'fa-volume-off'; } 
-                else if (radio.volume < 0.5) { iconClass = 'fa-volume-low'; }
-                volumeIcon.className = `fa-solid ${iconClass}`;
+                if(data.results.length > 0) {
+                    art.src = data.results[0].artworkUrl100.replace('100x100bb', '600x600bb');
+                } else {
+                    art.src = defaultArt; // Si no hay nada claro, pone tu imagen de anime
+                }
+            } catch(e) {
+                art.src = defaultArt;
             }
-            
-            controlVolumen.addEventListener('input', (event) => syncVolume(event.target));
-            
-            // Inicialización al cargar la página
-            caratulaImg.src = defaultArt;
-            radio.volume = controlVolumen.value;
-            syncVolume(controlVolumen); 
-            updateStatus('OFFLINE');
-        });
+        }
+
+        document.getElementById('vol').oninput = (e) => audio.volume = e.target.value;
+        window.onresize = initParticles;
+        initParticles();
+        draw();
+        startMetadata();
     </script>
 </body>
 </html>

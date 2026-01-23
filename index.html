@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RADIO WEB PLAYER - Master Edition</title>
+    <title>RADIO WEB PLAYER 20.1.0</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;900&display=swap');
@@ -59,11 +59,11 @@
     <div id="player-ui">
         <div class="art-zone">
             <div id="main-aura"></div>
-            <img id="album-art" src="" crossorigin="anonymous" onerror="handleArtError()">
+            <img id="album-art" src="" crossorigin="anonymous">
         </div>
         <div id="info">
-            <h1 id="track-title">CONECTANDO</h1>
-            <h2 id="artist-name">HEART LOVE FM</h2>
+            <h1 id="track-title">HEART LOVE FM</h1>
+            <h2 id="artist-name">CONECTANDO</h2>
             <div class="progress-container"><div id="progress-bar"></div></div>
         </div>
         <div class="controls">
@@ -115,10 +115,7 @@
             const abc = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ0123456789";
             const char = title.charAt(0).toUpperCase();
             const i = abc.indexOf(char) === -1 ? 0 : abc.indexOf(char);
-            
-            // LISTA ACTUALIZADA SIN LAS FIGURAS QUE NO TE GUSTABAN
-            const shapes = ['♥','●','♪','✧','✿','🍃','♦','✵','🎵','❤','☼','❀','✨','✳','❈','✽','♫','✸','♡','💎','🍂','✫','❃','◎','○','◈','★','☆'];
-            
+            const shapes = ['♥','●','♪','✧','✿','❦','♦','✵','🎵','❤','☼','❀','✺','✳','❈','✽','♫','✸','♡','⬥','❃','✫','❃','◎','○','◈','★','☆'];
             activePreset = {
                 rS: 0.003 + (i * 0.0008),
                 rK: 1.0 + (i % 7 * 0.15),
@@ -128,34 +125,17 @@
             };
         }
 
-        function handleArtError() {
-            if (art.src !== estaciones[currentRadioIdx].logo) updateArtUI(estaciones[currentRadioIdx].logo);
-        }
-
-        function initParticles() {
-            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-            spectrumParticles = []; backgroundParticles = [];
-            for(let i=0; i<160; i++) spectrumParticles.push({ a: (i / 160) * Math.PI * 2, oR: 135, sf: 0 });
-            for(let i=0; i<80; i++) backgroundParticles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, size: Math.random() * 1.5 });
-        }
-
-        function initLobby() {
-            const container = document.getElementById('lista-radios');
-            container.innerHTML = "";
-            estaciones.forEach((r, i) => {
-                const item = document.createElement('div');
-                item.className = 'radio-item';
-                item.innerHTML = `<img src="${r.logo}"> <div><h4>${r.name}</h4></div>`;
-                item.onclick = () => sintonizar(i);
-                container.appendChild(item);
-            });
-        }
-
         async function sintonizar(index) {
             currentRadioIdx = index;
             const r = estaciones[index];
+
             if(metadataEvent) metadataEvent.close();
-            isPlaying = false; audio.pause(); audio.src = ""; 
+            audio.pause(); 
+            audio.src = ""; 
+            
+            // Icono de carga siempre al elegir radio nueva (Autoplay forzado)
+            playBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+
             setTimeout(() => {
                 audio.src = r.url;
                 trackTxt.innerText = r.name;
@@ -164,7 +144,10 @@
                 updateDynamicPreset(r.name);
                 lobby.classList.remove('active'); overlay.classList.remove('active');
                 startMetadata(r.mount);
-                toggleRadio();
+                
+                // AUTOPLAY FORZADO: No importa el estado anterior, siempre arranca
+                isPlaying = false; 
+                toggleRadio(); 
             }, 200);
         }
 
@@ -227,11 +210,11 @@
             if (audioCtx.state === 'suspended') await audioCtx.resume();
             if (!isPlaying) {
                 const currentLink = audio.src; audio.src = ""; audio.load(); audio.src = currentLink;
-                try { await audio.play(); isPlaying = true; } catch (e) { playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; }
+                try { await audio.play(); isPlaying = true; playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; } catch (e) { playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; }
             } else { audio.pause(); isPlaying = false; playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; }
         }
 
-        audio.onplaying = () => { playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; };
+        audio.onplaying = () => { isPlaying = true; playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; };
         
         function draw() {
             requestAnimationFrame(draw);
@@ -260,13 +243,36 @@
             art.style.transform = `scale(${1 + (smoothAvg/320)})`;
         }
 
+        function initLobby() {
+            const container = document.getElementById('lista-radios');
+            container.innerHTML = "";
+            estaciones.forEach((r, i) => {
+                const item = document.createElement('div');
+                item.className = 'radio-item';
+                item.innerHTML = `<img src="${r.logo}"> <div><h4>${r.name}</h4></div>`;
+                item.onclick = () => sintonizar(i);
+                container.appendChild(item);
+            });
+        }
+
         document.getElementById('lobby-btn').onclick = () => { lobby.classList.add('active'); overlay.classList.add('active'); };
         document.getElementById('close-lobby').onclick = () => { lobby.classList.remove('active'); overlay.classList.remove('active'); };
         overlay.onclick = () => { lobby.classList.remove('active'); overlay.classList.remove('active'); };
         playBtn.onclick = toggleRadio;
         volSlider.oninput = (e) => audio.volume = e.target.value;
-        window.onresize = initParticles;
-        window.onload = () => { initParticles(); initLobby(); sintonizar(0); draw(); };
+        window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+        
+        window.onload = () => { 
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            for(let i=0; i<160; i++) spectrumParticles.push({ a: (i / 160) * Math.PI * 2, oR: 135, sf: 0 });
+            for(let i=0; i<80; i++) backgroundParticles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, size: Math.random() * 1.5 });
+            initLobby(); 
+            const r = estaciones[0];
+            audio.src = r.url;
+            updateArtUI(r.logo);
+            startMetadata(r.mount);
+            draw(); 
+        };
     </script>
 </body>
 </html>

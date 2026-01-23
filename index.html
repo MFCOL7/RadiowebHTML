@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Radio Web Player - Ultra Personalizado</title>
+    <title>RADIO WEB PLAYER - Master Edition</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;900&display=swap');
@@ -14,7 +14,6 @@
         @keyframes bgPulse { 0% { transform: scale(1) rotate(0deg); } 100% { transform: scale(1.1) rotate(2deg); } }
         canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
         
-        /* LOBBY */
         #lobby-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0); z-index: 999; display: none; transition: background 0.4s; }
         #lobby-overlay.active { display: block; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); }
         #radio-lobby { position: fixed; top: 0; left: -320px; width: 300px; height: 100%; background: rgba(0, 0, 0, 0.95); backdrop-filter: blur(25px); z-index: 1000; transition: 0.5s cubic-bezier(0.17, 0.67, 0.83, 0.67); border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; }
@@ -27,7 +26,6 @@
         .radio-item img { width: 45px; height: 45px; border-radius: 10px; object-fit: cover; background: #222; }
         .radio-item h4 { font-size: 14px; font-weight: 600; }
 
-        /* PLAYER UI */
         #player-ui { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; }
         .art-zone { position: relative; width: 300px; height: 300px; display: flex; justify-content: center; align-items: center; }
         #main-aura { position: absolute; width: 100%; height: 100%; border-radius: 50%; filter: blur(60px); opacity: 0.5; z-index: 3; transition: background 2s ease; }
@@ -97,26 +95,36 @@
         let smoothAvg = 0;
         let metadataEvent = null;
         let currentRadioIdx = 0;
-        let activePreset = { rS: 0.005, rK: 1.2, oV: 0.1, sh: '●' };
+        let activePreset = { rS: 0.005, rK: 1.2, oV: 0.1, sh: '●', isSpecial: false };
 
         const estaciones = [
             { name: "Heart Love FM", url: "https://stream.zeno.fm/cr8evht2huruv", mount: "cr8evht2huruv", logo: "https://images.zeno.fm/LGol9lXeVJlVfO1bhAvAiJ7s3yl7nAUcaVsaDi1u-hw/rs:fill:288:288/g:ce:0:0/aHR0cHM6Ly9wcm94eS56ZW5vLmZtL2NvbnRlbnQvc3RhdGlvbnMvMTllOWM2NDktODNmZS00ZDA1LWEwNGYtY2Y5NThiNDEzMTlhL2ltYWdlLz91PTE3MzE5ODYxMzgwMDA.webp" },
             { name: "Radio Somos Luz", url: "https://stream.zeno.fm/n25e8knfunhvv", mount: "n25e8knfunhvv", logo: "https://v5.zeno.fm/api/station/n25e8knfunhvv/image/" }
         ];
 
-        // LÓGICA DE 27 VARIANTES ÚNICAS (Formas: Romántico, Calma, Naturaleza)
-        function updateDynamicPreset(char) {
+        function updateDynamicPreset(title) {
+            const lowerTitle = title.toLowerCase();
+            const románticas = ["amor", "love", "querer", "amorcito", "cariño", "heart", "beso", "kiss", "pasión", "adorar"];
+            const esRomantica = románticas.some(palabra => lowerTitle.includes(palabra));
+
+            if (esRomantica) {
+                activePreset = { rS: 0.004, rK: 1.8, oV: 0.4, sh: ['♥', '♪'], isSpecial: true };
+                return;
+            }
+
             const abc = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ0123456789";
-            const i = abc.indexOf(char.toUpperCase()) === -1 ? 0 : abc.indexOf(char.toUpperCase());
+            const char = title.charAt(0).toUpperCase();
+            const i = abc.indexOf(char) === -1 ? 0 : abc.indexOf(char);
             
-            // 27 Formas que incluyen Corazones, Flores, Hojas, Estrellas y Notas
-            const shapes = ['♥','●','♪','✧','✿','🍃','♦','✵','🎵','❤','☼','❀','☘','✨','✳','❈','❥','✽','♫','☾','✸','♡','💎','🍂','✫','❃','◎'];
+            // LISTA ACTUALIZADA SIN LAS FIGURAS QUE NO TE GUSTABAN
+            const shapes = ['♥','●','♪','✧','✿','🍃','♦','✵','🎵','❤','☼','❀','✨','✳','❈','✽','♫','✸','♡','💎','🍂','✫','❃','◎','○','◈','★','☆'];
             
             activePreset = {
-                rS: 0.003 + (i * 0.0008),      // Velocidad de rotación única (27 niveles)
-                rK: 1.0 + (i % 7 * 0.15),      // Sensibilidad al bajo única
-                oV: (i % 5) * 0.25,            // Amplitud de oscilación única
-                sh: shapes[i % shapes.length]  // Figura única
+                rS: 0.003 + (i * 0.0008),
+                rK: 1.0 + (i % 7 * 0.15),
+                oV: (i % 5) * 0.25,
+                sh: shapes[i % shapes.length],
+                isSpecial: false
             };
         }
 
@@ -153,7 +161,7 @@
                 trackTxt.innerText = r.name;
                 artistTxt.innerText = "Sintonizando...";
                 updateArtUI(r.logo); 
-                updateDynamicPreset(r.name.charAt(0));
+                updateDynamicPreset(r.name);
                 lobby.classList.remove('active'); overlay.classList.remove('active');
                 startMetadata(r.mount);
                 toggleRadio();
@@ -168,7 +176,7 @@
                     const [artist, song] = data.streamTitle.split(' - ');
                     trackTxt.innerText = song || "En Vivo";
                     artistTxt.innerText = artist || estaciones[currentRadioIdx].name;
-                    updateDynamicPreset(trackTxt.innerText.charAt(0)); // Cambio de estado por cada letra
+                    updateDynamicPreset(trackTxt.innerText); 
                     searchiTunesArt(data.streamTitle);
                 }
             };
@@ -208,6 +216,7 @@
         }
 
         async function toggleRadio() {
+            if (!isPlaying) playBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 analyser = audioCtx.createAnalyser();
@@ -217,7 +226,6 @@
             }
             if (audioCtx.state === 'suspended') await audioCtx.resume();
             if (!isPlaying) {
-                playBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
                 const currentLink = audio.src; audio.src = ""; audio.load(); audio.src = currentLink;
                 try { await audio.play(); isPlaying = true; } catch (e) { playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; }
             } else { audio.pause(); isPlaying = false; playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; }
@@ -244,7 +252,10 @@
                 const x = cx + Math.cos(p.a) * d; const y = cy + Math.sin(p.a) * d;
                 ctx.save(); ctx.globalAlpha = 0.4 + (p.sf * 0.6);
                 ctx.fillStyle = i % 2 === 0 ? "white" : `rgb(${accentColor})`;
-                ctx.font = `bold ${(1.5 + (p.sf * 6)) * 3}px Arial`; ctx.fillText(activePreset.sh, x, y); ctx.restore();
+                ctx.font = `bold ${(1.5 + (p.sf * 6)) * 3}px Arial`;
+                let shapeToDraw = activePreset.sh;
+                if (activePreset.isSpecial) shapeToDraw = activePreset.sh[i % 2];
+                ctx.fillText(shapeToDraw, x, y); ctx.restore();
             });
             art.style.transform = `scale(${1 + (smoothAvg/320)})`;
         }

@@ -3,276 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RADIO WEB PLAYER 20.1.0</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <title>HEART LOVE FM - Status</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;900&display=swap');
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Montserrat', sans-serif; background: #000; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; color: white; }
-        
-        #bg-image { position: fixed; top: -15%; left: -15%; width: 130%; height: 130%; background-size: cover; background-position: center; filter: blur(60px) brightness(0.3); z-index: 0; transition: background-image 2s ease; animation: bgPulse 20s infinite alternate ease-in-out; }
-        @keyframes bgPulse { 0% { transform: scale(1) rotate(0deg); } 100% { transform: scale(1.1) rotate(2deg); } }
-        canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
-        
-        #lobby-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0); z-index: 999; display: none; transition: background 0.4s; }
-        #lobby-overlay.active { display: block; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); }
-        #radio-lobby { position: fixed; top: 0; left: -320px; width: 300px; height: 100%; background: rgba(0, 0, 0, 0.95); backdrop-filter: blur(25px); z-index: 1000; transition: 0.5s cubic-bezier(0.17, 0.67, 0.83, 0.67); border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; }
-        #radio-lobby.active { left: 0; }
-        #lobby-header { padding: 30px 20px 10px; display: flex; justify-content: space-between; align-items: center; font-size: 10px; letter-spacing: 3px; opacity: 0.6; }
-        #lobby-content { flex: 1; overflow-y: auto; padding: 10px 15px; }
-        .lobby-category { font-size: 10px; font-weight: 900; color: #fff; opacity: 0.4; margin: 25px 0 10px 5px; letter-spacing: 2px; }
-        .radio-item { display: flex; align-items: center; gap: 15px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 12px; margin-bottom: 8px; cursor: pointer; transition: 0.3s; }
-        .radio-item:hover { background: rgba(255,255,255,0.08); transform: translateX(5px); }
-        .radio-item img { width: 45px; height: 45px; border-radius: 10px; object-fit: cover; background: #222; }
-        .radio-item h4 { font-size: 14px; font-weight: 600; }
-
-        #player-ui { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; }
-        .art-zone { position: relative; width: 300px; height: 300px; display: flex; justify-content: center; align-items: center; }
-        #main-aura { position: absolute; width: 100%; height: 100%; border-radius: 50%; filter: blur(60px); opacity: 0.5; z-index: 3; transition: background 2s ease; }
-        #album-art { width: 220px; height: 220px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(255,255,255,0.15); z-index: 5; background: #111; transition: transform 0.1s; }
-        
-        #info { margin-top: 25px; min-height: 110px; }
-        #track-title { font-size: 26px; font-weight: 900; margin-bottom: 5px; transition: color 1.5s ease; text-shadow: 0 0 20px rgba(255, 255, 255, 0.7); }
-        #artist-name { font-size: 13px; letter-spacing: 5px; text-transform: uppercase; font-weight: 600; opacity: 0.9; }
-        
-        .progress-container { width: 180px; height: 2px; background: rgba(255,255,255,0.1); margin: 18px auto; position: relative; }
-        #progress-bar { width: 100%; height: 100%; background: #fff; transform: scaleX(0); transition: transform 0.15s; box-shadow: 0 0 15px white; }
-
-        .controls { margin-top: 25px; display: flex; align-items: center; gap: 20px; background: rgba(255, 255, 255, 0.07); padding: 15px 35px; border-radius: 50px; backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        #play-btn { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); width: 55px; height: 55px; border-radius: 50%; cursor: pointer; font-size: 22px; display: flex; align-items: center; justify-content: center; }
-        #vol { width: 80px; accent-color: #fff; cursor: pointer; }
-        #lobby-btn { background: none; border: none; color: white; cursor: pointer; font-size: 20px; opacity: 0.6; }
-        .fa-spin { animation: fa-spin 1s infinite linear; }
+        body {
+            background-color: #0f0f0f;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .container {
+            padding: 20px;
+            border: 1px solid #333;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            max-width: 400px;
+        }
+        h1 {
+            color: #ff4d4d; /* Un rojo romántico pero de alerta */
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        p {
+            font-size: 18px;
+            line-height: 1.6;
+            color: #ccc;
+        }
+        .status-tag {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 8px 15px;
+            background-color: #444;
+            color: #ff4d4d;
+            border-radius: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .heart {
+            color: #ff4d4d;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
 
-    <div id="lobby-overlay"></div>
-    <div id="radio-lobby">
-        <div id="lobby-header"><span>SINTONIZADOR</span><i class="fa-solid fa-xmark" id="close-lobby" style="cursor:pointer; font-size:20px;"></i></div>
-        <div id="lobby-content"><div class="lobby-category">MIS RADIOS</div><div id="lista-radios"></div></div>
+    <div class="container">
+        <div class="heart">❤</div>
+        <h1>Oops!</h1>
+        <p>Page not found error. Contact the page owner if you cannot find or the website does not load.</p>
+        <div class="status-tag">{temporarily closed}</div>
     </div>
 
-    <div id="bg-image"></div>
-    <canvas id="main-canvas"></canvas>
-
-    <div id="player-ui">
-        <div class="art-zone">
-            <div id="main-aura"></div>
-            <img id="album-art" src="" crossorigin="anonymous">
-        </div>
-        <div id="info">
-            <h1 id="track-title">HEART LOVE FM</h1>
-            <h2 id="artist-name">CONECTANDO</h2>
-            <div class="progress-container"><div id="progress-bar"></div></div>
-        </div>
-        <div class="controls">
-            <button id="lobby-btn"><i class="fa-solid fa-list-ul"></i></button>
-            <input type="range" id="vol" min="0" max="1" step="0.01" value="0.7">
-            <button id="play-btn"><i class="fa-solid fa-play"></i></button>
-        </div>
-    </div>
-
-    <audio id="stream" crossorigin="anonymous"></audio>
-
-    <script>
-        const audio = document.getElementById('stream');
-        const playBtn = document.getElementById('play-btn');
-        const art = document.getElementById('album-art');
-        const bgImg = document.getElementById('bg-image');
-        const trackTxt = document.getElementById('track-title');
-        const artistTxt = document.getElementById('artist-name');
-        const progBar = document.getElementById('progress-bar');
-        const volSlider = document.getElementById('vol');
-        const canvas = document.getElementById('main-canvas');
-        const ctx = canvas.getContext('2d');
-        const lobby = document.getElementById('radio-lobby');
-        const overlay = document.getElementById('lobby-overlay');
-
-        let audioCtx, analyser, dataArray, isPlaying = false;
-        let spectrumParticles = [], backgroundParticles = [];
-        let accentColor = "255, 255, 255";
-        let smoothAvg = 0;
-        let metadataEvent = null;
-        let currentRadioIdx = 0;
-        let activePreset = { rS: 0.005, rK: 1.2, oV: 0.1, sh: '●', isSpecial: false };
-
-        const estaciones = [
-            { name: "Heart Love FM", url: "https://stream.zeno.fm/cr8evht2huruv", mount: "cr8evht2huruv", logo: "https://images.zeno.fm/LGol9lXeVJlVfO1bhAvAiJ7s3yl7nAUcaVsaDi1u-hw/rs:fill:288:288/g:ce:0:0/aHR0cHM6Ly9wcm94eS56ZW5vLmZtL2NvbnRlbnQvc3RhdGlvbnMvMTllOWM2NDktODNmZS00ZDA1LWEwNGYtY2Y5NThiNDEzMTlhL2ltYWdlLz91PTE3MzE5ODYxMzgwMDA.webp" },
-            { name: "Radio Somos Luz", url: "https://stream.zeno.fm/n25e8knfunhvv", mount: "n25e8knfunhvv", logo: "https://v5.zeno.fm/api/station/n25e8knfunhvv/image/" }
-        ];
-
-        function updateDynamicPreset(title) {
-            const lowerTitle = title.toLowerCase();
-            const románticas = ["amor", "love", "querer", "amorcito", "cariño", "heart", "beso", "kiss", "pasión", "adorar"];
-            const esRomantica = románticas.some(palabra => lowerTitle.includes(palabra));
-
-            if (esRomantica) {
-                activePreset = { rS: 0.004, rK: 1.8, oV: 0.4, sh: ['♥', '♪'], isSpecial: true };
-                return;
-            }
-
-            const abc = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ0123456789";
-            const char = title.charAt(0).toUpperCase();
-            const i = abc.indexOf(char) === -1 ? 0 : abc.indexOf(char);
-            const shapes = ['♥','●','♪','✧','✿','❦','♦','✵','🎵','❤','☼','❀','✺','✳','❈','✽','♫','✸','♡','⬥','❃','✫','❃','◎','○','◈','★','☆'];
-            activePreset = {
-                rS: 0.003 + (i * 0.0008),
-                rK: 1.0 + (i % 7 * 0.15),
-                oV: (i % 5) * 0.25,
-                sh: shapes[i % shapes.length],
-                isSpecial: false
-            };
-        }
-
-        async function sintonizar(index) {
-            currentRadioIdx = index;
-            const r = estaciones[index];
-
-            if(metadataEvent) metadataEvent.close();
-            audio.pause(); 
-            audio.src = ""; 
-            
-            // Icono de carga siempre al elegir radio nueva (Autoplay forzado)
-            playBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
-
-            setTimeout(() => {
-                audio.src = r.url;
-                trackTxt.innerText = r.name;
-                artistTxt.innerText = "Sintonizando...";
-                updateArtUI(r.logo); 
-                updateDynamicPreset(r.name);
-                lobby.classList.remove('active'); overlay.classList.remove('active');
-                startMetadata(r.mount);
-                
-                // AUTOPLAY FORZADO: No importa el estado anterior, siempre arranca
-                isPlaying = false; 
-                toggleRadio(); 
-            }, 200);
-        }
-
-        function startMetadata(mount) {
-            metadataEvent = new EventSource(`https://api.zeno.fm/mounts/metadata/subscribe/${mount}`);
-            metadataEvent.onmessage = async (e) => {
-                const data = JSON.parse(e.data);
-                if(data.streamTitle) {
-                    const [artist, song] = data.streamTitle.split(' - ');
-                    trackTxt.innerText = song || "En Vivo";
-                    artistTxt.innerText = artist || estaciones[currentRadioIdx].name;
-                    updateDynamicPreset(trackTxt.innerText); 
-                    searchiTunesArt(data.streamTitle);
-                }
-            };
-        }
-
-        async function searchiTunesArt(query) {
-            try {
-                const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&limit=1&entity=song`);
-                const itunes = await res.json();
-                if(itunes.results && itunes.results.length > 0) {
-                    const img = itunes.results[0].artworkUrl100.replace('100x100bb', '600x600bb');
-                    updateArtUI(img);
-                } else { updateArtUI(estaciones[currentRadioIdx].logo); }
-            } catch(e) { updateArtUI(estaciones[currentRadioIdx].logo); }
-        }
-
-        function updateArtUI(imgUrl) {
-            art.src = imgUrl; 
-            bgImg.style.backgroundImage = `url('${imgUrl}')`;
-            const tI = new Image(); tI.crossOrigin = "Anonymous"; tI.src = imgUrl;
-            tI.onload = () => {
-                const c = document.createElement('canvas'); const x = c.getContext('2d');
-                c.width = 1; c.height = 1; x.drawImage(tI, 0, 0, 1, 1);
-                const d = x.getImageData(0,0,1,1).data; updateUIColors(d[0], d[1], d[2]);
-            };
-        }
-
-        function updateUIColors(r, g, b) {
-            accentColor = `${r}, ${g}, ${b}`;
-            const rgb = `rgb(${accentColor})`;
-            trackTxt.style.color = rgb;
-            trackTxt.style.textShadow = `0 0 15px rgba(255,255,255,0.6), 0 0 30px rgba(${accentColor}, 0.4)`;
-            volSlider.style.accentColor = rgb;
-            progBar.style.background = rgb;
-            progBar.style.boxShadow = `0 0 15px ${rgb}`;
-            document.getElementById('main-aura').style.background = `radial-gradient(circle, rgba(${accentColor},0.6) 0%, transparent 70%)`;
-        }
-
-        async function toggleRadio() {
-            if (!isPlaying) playBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioCtx.createAnalyser();
-                const src = audioCtx.createMediaElementSource(audio);
-                src.connect(analyser); analyser.connect(audioCtx.destination);
-                analyser.fftSize = 64; dataArray = new Uint8Array(analyser.frequencyBinCount);
-            }
-            if (audioCtx.state === 'suspended') await audioCtx.resume();
-            if (!isPlaying) {
-                const currentLink = audio.src; audio.src = ""; audio.load(); audio.src = currentLink;
-                try { await audio.play(); isPlaying = true; playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; } catch (e) { playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; }
-            } else { audio.pause(); isPlaying = false; playBtn.innerHTML = '<i class="fa-solid fa-play"></i>'; }
-        }
-
-        audio.onplaying = () => { isPlaying = true; playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>'; };
-        
-        function draw() {
-            requestAnimationFrame(draw);
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            let cur = 0;
-            if(isPlaying && dataArray) { analyser.getByteFrequencyData(dataArray); cur = dataArray.reduce((a,b) => a+b) / dataArray.length; }
-            smoothAvg += (cur - smoothAvg) * 0.12;
-            progBar.style.transform = `scaleX(${Math.min(smoothAvg / 60, 1)})`;
-            const rect = art.getBoundingClientRect();
-            const cx = rect.left + rect.width / 2;
-            const cy = rect.top + rect.height / 2;
-            backgroundParticles.forEach(p => { ctx.globalAlpha = 0.1; ctx.fillStyle = "white"; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); });
-            spectrumParticles.forEach((p, i) => {
-                const rf = (isPlaying && dataArray) ? (dataArray[i % dataArray.length] / 255) : 0;
-                p.sf += (rf * activePreset.rK - p.sf) * 0.15; 
-                p.a += activePreset.rS + (p.sf * 0.01);
-                let d = p.oR + (p.sf * 110) + Math.cos(p.a * 2 + Date.now()*0.001) * (35 * activePreset.oV);
-                const x = cx + Math.cos(p.a) * d; const y = cy + Math.sin(p.a) * d;
-                ctx.save(); ctx.globalAlpha = 0.4 + (p.sf * 0.6);
-                ctx.fillStyle = i % 2 === 0 ? "white" : `rgb(${accentColor})`;
-                ctx.font = `bold ${(1.5 + (p.sf * 6)) * 3}px Arial`;
-                let shapeToDraw = activePreset.sh;
-                if (activePreset.isSpecial) shapeToDraw = activePreset.sh[i % 2];
-                ctx.fillText(shapeToDraw, x, y); ctx.restore();
-            });
-            art.style.transform = `scale(${1 + (smoothAvg/320)})`;
-        }
-
-        function initLobby() {
-            const container = document.getElementById('lista-radios');
-            container.innerHTML = "";
-            estaciones.forEach((r, i) => {
-                const item = document.createElement('div');
-                item.className = 'radio-item';
-                item.innerHTML = `<img src="${r.logo}"> <div><h4>${r.name}</h4></div>`;
-                item.onclick = () => sintonizar(i);
-                container.appendChild(item);
-            });
-        }
-
-        document.getElementById('lobby-btn').onclick = () => { lobby.classList.add('active'); overlay.classList.add('active'); };
-        document.getElementById('close-lobby').onclick = () => { lobby.classList.remove('active'); overlay.classList.remove('active'); };
-        overlay.onclick = () => { lobby.classList.remove('active'); overlay.classList.remove('active'); };
-        playBtn.onclick = toggleRadio;
-        volSlider.oninput = (e) => audio.volume = e.target.value;
-        window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
-        
-        window.onload = () => { 
-            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-            for(let i=0; i<160; i++) spectrumParticles.push({ a: (i / 160) * Math.PI * 2, oR: 135, sf: 0 });
-            for(let i=0; i<80; i++) backgroundParticles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, size: Math.random() * 1.5 });
-            initLobby(); 
-            const r = estaciones[0];
-            audio.src = r.url;
-            updateArtUI(r.logo);
-            startMetadata(r.mount);
-            draw(); 
-        };
-    </script>
 </body>
 </html>
